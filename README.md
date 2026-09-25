@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Predictive Insights Studio
+
+A client-side dashboard for exploring segment-level predictive insights (estimated ROI, confidence scores, and related metrics). Built with [Next.js](https://nextjs.org), React, and Tailwind CSS, and deployed as a fully static site to GitHub Pages.
 
 ## Getting Started
 
-First, run the development server:
+Run the development server:
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) to view the app. Edit `app/page.tsx` to make changes — the page hot-reloads automatically.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+> The `basePath` used for production is disabled in development, so the app is served from the root (`/`) locally and from `/predictive-insights-studio/` when deployed.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Data Source
 
-## Learn More
+The dashboard fetches its data client-side from a JSON endpoint defined by `DATA_URL` in [`app/page.tsx`](app/page.tsx). To use a different dataset, update that constant to point at your own CORS-friendly URL (or drop a file in `public/` and reference it, e.g. `/segments.json`).
 
-To learn more about Next.js, take a look at the following resources:
+> **Security note:** any URL or API key placed in `DATA_URL` ships in the public client bundle. Restrict API keys (e.g. HTTP referrer restrictions) before publishing.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Building
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run build
+```
 
-## Deploy on Vercel
+This produces a static export in the `out/` directory (configured via `output: "export"` in [`next.config.ts`](next.config.ts)).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Deployment (GitHub Pages)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Deployment is automated via GitHub Actions ([`.github/workflows/deploy.yml`](.github/workflows/deploy.yml)). Every push to `main` builds the static export and publishes it.
+
+**One-time setup:** in the repository, go to **Settings → Pages → Build and deployment → Source** and select **GitHub Actions**.
+
+Once enabled, the site is served at:
+
+```
+https://swapnadeep2k.github.io/predictive-insights-studio/
+```
+
+You can also trigger a deploy manually from the **Actions** tab (the workflow supports `workflow_dispatch`).
