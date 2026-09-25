@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
 // -----------------------------
-// Types (adapted to your JSON)
+// Types (adapted to the JSON)
 // -----------------------------
 type RoiResult = {
   estimated_roi: number;
@@ -415,7 +415,7 @@ function Modal({
 }
 
 // -----------------------------
-// ROI Module (your pattern)
+// ROI Module
 // -----------------------------
 function RoiModule({ roi }: { roi: RoiResult }) {
   const roiVal = roi?.estimated_roi ?? 0;
@@ -575,7 +575,7 @@ export default function PlaybooksDashboard() {
 
         if (!DATA_URL) {
           throw new Error(
-            "Set DATA_URL to your hosted JSON (recommended: /public/segments.json or a CORS-friendly URL)."
+            "Set DATA_URL to the hosted JSON (recommended: /public/segments.json or a CORS-friendly URL)."
           );
         }
 
@@ -784,7 +784,7 @@ export default function PlaybooksDashboard() {
           <div className="text-lg font-semibold text-slate-900">Couldn’t load data</div>
           <div className="mt-2 text-sm text-slate-600">{err}</div>
           <div className="mt-4 text-sm text-slate-600">
-            Tip: put your JSON at <span className="font-mono">/public/segments.json</span> and set{" "}
+            Tip: put the JSON at <span className="font-mono">/public/segments.json</span> and set{" "}
             <span className="font-mono">DATA_URL = &quot;/segments.json&quot;</span>.
           </div>
         </div>
