@@ -2,7 +2,6 @@
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Menu, LayoutGrid, Target } from "lucide-react";
-import SpectrumSearch from "@spectrum-icons/workflow/Search";
 import SpectrumHelp from "@spectrum-icons/workflow/Help";
 import SpectrumBell from "@spectrum-icons/workflow/Bell";
 import SpectrumApps from "@spectrum-icons/workflow/Apps";
@@ -42,6 +41,7 @@ import SpectrumExport from "@spectrum-icons/workflow/Export";
 import SpectrumLockClosed from "@spectrum-icons/workflow/LockClosed";
 import SpectrumDataCheck from "@spectrum-icons/workflow/DataCheck";
 import SpectrumDataRefresh from "@spectrum-icons/workflow/DataRefresh";
+import SpectrumSearch from "@spectrum-icons/workflow/Search";
 import SpectrumDocument from "@spectrum-icons/workflow/Document";
 
 // Wraps a Spectrum workflow icon so it accepts a className prop (matches lucide's API)
@@ -964,7 +964,7 @@ export default function PlaybooksDashboard() {
         </div>
 
         {/* Center zone */}
-        <div className="hidden flex-1 justify-center md:flex">
+        <div className="flex flex-1 items-center justify-center">
           <div className="flex h-8 w-full max-w-[430px] items-center gap-2 rounded-full border border-slate-300 bg-slate-50 px-3 text-xs text-slate-500">
             <SpectrumSearch size="S" aria-hidden />
             <span className="truncate">Search Experience Cloud (Ctrl+/)</span>
@@ -1008,6 +1008,16 @@ export default function PlaybooksDashboard() {
               </div>
             )}
           </div>
+          <button
+            type="button"
+            aria-label="Launch AI Assistant"
+            className="flex h-7 w-7 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100"
+          >
+            {/* Adobe AI Assistant — 4-pointed sparkle matching the real AJO icon */}
+            <svg viewBox="0 0 20 20" width="18" height="18" fill="currentColor" aria-hidden="true">
+              <path d="M10 2c-.3 1.8-1.2 3.5-2.5 4.8C6.2 8.1 4.5 9 2 9.5c2.5.5 4.2 1.5 5.5 2.8C8.8 13.5 9.7 15.2 10 17c.3-1.8 1.2-3.5 2.5-4.8 1.3-1.3 3-2.2 5.5-2.7-2.5-.5-4.2-1.5-5.5-2.8C11.2 5.5 10.3 3.8 10 2z"/>
+            </svg>
+          </button>
           <button
             type="button"
             aria-label="Help"
