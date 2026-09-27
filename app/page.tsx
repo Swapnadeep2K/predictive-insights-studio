@@ -1296,7 +1296,7 @@ export default function PlaybooksDashboard() {
                               </div>
                             </td>
                             <td className={`px-4 py-3 text-center ${selectedCellClass} ${rightEdgeClass}`}>
-                              {roiVal != null ? (
+                              {roi ? (
                                 <Badge variant={confVariant}>{confidenceLabel(conf)}</Badge>
                               ) : (
                                 <span className="text-slate-500">—</span>
