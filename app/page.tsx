@@ -41,6 +41,7 @@ import SpectrumExport from "@spectrum-icons/workflow/Export";
 import SpectrumLockClosed from "@spectrum-icons/workflow/LockClosed";
 import SpectrumDataCheck from "@spectrum-icons/workflow/DataCheck";
 import SpectrumDataRefresh from "@spectrum-icons/workflow/DataRefresh";
+import { ActionButton } from "@react-spectrum/button";
 import SpectrumSearch from "@spectrum-icons/workflow/Search";
 import SpectrumDocument from "@spectrum-icons/workflow/Document";
 
@@ -1008,40 +1009,26 @@ export default function PlaybooksDashboard() {
               </div>
             )}
           </div>
-          <button
-            type="button"
-            aria-label="Launch AI Assistant"
-            className="flex h-7 w-7 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100"
-          >
+          <ActionButton isQuiet aria-label="Launch AI Assistant">
             {/* Adobe AI Assistant — 4-pointed sparkle matching the real AJO icon */}
             <svg viewBox="0 0 20 20" width="18" height="18" fill="currentColor" aria-hidden="true">
               <path d="M10 2c-.3 1.8-1.2 3.5-2.5 4.8C6.2 8.1 4.5 9 2 9.5c2.5.5 4.2 1.5 5.5 2.8C8.8 13.5 9.7 15.2 10 17c.3-1.8 1.2-3.5 2.5-4.8 1.3-1.3 3-2.2 5.5-2.7-2.5-.5-4.2-1.5-5.5-2.8C11.2 5.5 10.3 3.8 10 2z"/>
             </svg>
-          </button>
-          <button
-            type="button"
-            aria-label="Help"
-            className="flex h-7 w-7 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100"
-          >
-            <SpectrumHelp size="S" aria-hidden />
-          </button>
-          <button
-            type="button"
-            aria-label="Notifications"
-            className="relative flex h-7 w-7 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100"
-          >
-            <SpectrumBell size="S" aria-hidden />
-            <span className="absolute right-0.5 top-0.5 flex h-3.5 min-w-[14px] items-center justify-center rounded-full bg-[#0265dc] px-0.5 text-[9px] font-bold leading-none text-white">
+          </ActionButton>
+          <ActionButton isQuiet aria-label="Help">
+            <SpectrumHelp />
+          </ActionButton>
+          <div className="relative">
+            <ActionButton isQuiet aria-label="Notifications">
+              <SpectrumBell />
+            </ActionButton>
+            <span className="pointer-events-none absolute right-0.5 top-0.5 flex h-3.5 min-w-[14px] items-center justify-center rounded-full bg-[#0265dc] px-0.5 text-[9px] font-bold leading-none text-white">
               9+
             </span>
-          </button>
-          <button
-            type="button"
-            aria-label="App switcher"
-            className="flex h-7 w-7 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100"
-          >
-            <SpectrumApps size="S" aria-hidden />
-          </button>
+          </div>
+          <ActionButton isQuiet aria-label="App switcher">
+            <SpectrumApps />
+          </ActionButton>
           <button
             type="button"
             aria-label="Profile"
