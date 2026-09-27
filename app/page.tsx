@@ -1156,7 +1156,7 @@ export default function PlaybooksDashboard() {
                   <table className="w-full table-fixed border-t border-slate-200 text-sm">
                     <thead className="bg-slate-50 text-slate-500">
                       <tr>
-                        <th className="w-[6%] px-4 py-2 text-left font-semibold">
+                        <th className="w-[5%] px-4 py-2 text-left font-semibold">
                           <input
                             ref={selectAllRef}
                             type="checkbox"
@@ -1172,37 +1172,37 @@ export default function PlaybooksDashboard() {
                             className="h-4 w-4 cursor-pointer rounded-sm border border-slate-300 bg-white align-middle accent-[#0265dc]"
                           />
                         </th>
-                        <th className="w-[26%] px-4 py-2 text-left font-semibold">
+                        <th className="w-[28%] px-4 py-2 text-left font-semibold">
                           <button type="button" onClick={() => onSort("name")} className="inline-flex items-center gap-1 rounded text-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0265dc]">
                             <SortArrow active={sortField === "name"} direction={sortDirection} />
                             <span>Name</span>
                           </button>
                         </th>
-                        <th className="w-[14%] px-4 py-2 text-left font-semibold">
+                        <th className="w-[16%] px-4 py-2 text-left font-semibold">
                           <button type="button" onClick={() => onSort("type")} className="inline-flex items-center gap-1 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0265dc]">
                             <SortArrow active={sortField === "type"} direction={sortDirection} />
                             <span>Type</span>
                           </button>
                         </th>
-                        <th className="w-[12%] px-4 py-2 text-left font-semibold">
+                        <th className="w-[14%] px-4 py-2 text-left font-semibold">
                           <button type="button" onClick={() => onSort("channel")} className="inline-flex items-center gap-1 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0265dc]">
                             <SortArrow active={sortField === "channel"} direction={sortDirection} />
                             <span>Channel</span>
                           </button>
                         </th>
-                        <th className="w-[16%] px-4 py-2 text-left font-semibold">
+                        <th className="w-[14%] px-4 py-2 text-left font-semibold">
                           <button type="button" onClick={() => onSort("trigger")} className="inline-flex items-center gap-1 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0265dc]">
                             <SortArrow active={sortField === "trigger"} direction={sortDirection} />
                             <span>Trigger</span>
                           </button>
                         </th>
-                        <th className="w-[10%] px-4 py-2 text-left font-semibold">
+                        <th className="w-[9%] px-4 py-2 text-left font-semibold">
                           <button type="button" onClick={() => onSort("roi")} className="inline-flex items-center gap-1 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0265dc]">
                             <SortArrow active={sortField === "roi"} direction={sortDirection} />
                             <span>ROI</span>
                           </button>
                         </th>
-                        <th className="w-[16%] px-4 py-2 text-center font-semibold">
+                        <th className="w-[14%] px-4 py-2 text-center font-semibold">
                           <button type="button" onClick={() => onSort("confidence")} className="inline-flex items-center gap-1 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0265dc]">
                             <SortArrow active={sortField === "confidence"} direction={sortDirection} />
                             <span>Confidence</span>
@@ -1278,10 +1278,8 @@ export default function PlaybooksDashboard() {
                               >
                                 <TruncateText text={formatDisplayValue(uc.use_case_title)} as="div" />
                               </button>
-                              {uc.where_to_show?.surface ? (
-                                <TruncateText text={formatDisplayValue(uc.where_to_show.surface)} as="div" className="mt-1 text-xs text-slate-500" />
-                              ) : (
-                                <div className="mt-1 text-xs text-slate-500">—</div>
+                              {uc.where_to_show?.surface && (
+                                <TruncateText text={formatDisplayValue(uc.where_to_show.surface)} as="div" className="mt-0.5 text-xs text-slate-500" />
                               )}
                             </td>
                             <td className={`px-4 py-3 text-slate-700 ${selectedCellClass}`}>
