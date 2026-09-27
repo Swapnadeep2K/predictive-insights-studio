@@ -1,15 +1,56 @@
 ﻿"use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import {
-  Menu, Search, Home, Megaphone, Workflow, FileText, LayoutList,
-  LayoutGrid, Image, LayoutTemplate, Palette, Puzzle, PanelTop, Globe,
-  Network, Database, Terminal, Activity, ArrowRightCircle, ArrowLeftCircle,
-  Users, ListChecks, ChevronDown, HelpCircle, Bell, Grid3x3,
-  Target, FileEdit, UserCircle, Fingerprint, Calculator,
-  ShieldCheck, Inbox, SearchCheck, Recycle,
-  Settings, GitBranch, AlertTriangle, Boxes, Sliders, Tag, BadgeCheck, X, MoreHorizontal,
-} from "lucide-react";
+import { Menu, LayoutGrid, Target } from "lucide-react";
+import SpectrumSearch from "@spectrum-icons/workflow/Search";
+import SpectrumHelp from "@spectrum-icons/workflow/Help";
+import SpectrumBell from "@spectrum-icons/workflow/Bell";
+import SpectrumApps from "@spectrum-icons/workflow/Apps";
+import SpectrumMore from "@spectrum-icons/workflow/More";
+import SpectrumChevronDown from "@spectrum-icons/workflow/ChevronDown";
+import SpectrumClose from "@spectrum-icons/workflow/Close";
+import SpectrumHome from "@spectrum-icons/workflow/Home";
+import SpectrumCampaign from "@spectrum-icons/workflow/Campaign";
+import SpectrumJourney from "@spectrum-icons/workflow/Journey";
+import SpectrumReport from "@spectrum-icons/workflow/Report";
+import SpectrumAsset from "@spectrum-icons/workflow/Asset";
+import SpectrumFileTemplate from "@spectrum-icons/workflow/FileTemplate";
+import SpectrumDocumentFragment from "@spectrum-icons/workflow/DocumentFragment";
+import SpectrumForm from "@spectrum-icons/workflow/Form";
+import SpectrumHomepage from "@spectrum-icons/workflow/Homepage";
+import SpectrumGlobe from "@spectrum-icons/workflow/Globe";
+import SpectrumPlatformDataMapping from "@spectrum-icons/workflow/PlatformDataMapping";
+import SpectrumSQLQuery from "@spectrum-icons/workflow/SQLQuery";
+import SpectrumMonitoring from "@spectrum-icons/workflow/Monitoring";
+import SpectrumUserGroup from "@spectrum-icons/workflow/UserGroup";
+import SpectrumSubscribe from "@spectrum-icons/workflow/Subscribe";
+import SpectrumRealTimeCustomerProfile from "@spectrum-icons/workflow/RealTimeCustomerProfile";
+import SpectrumIdentityService from "@spectrum-icons/workflow/IdentityService";
+import SpectrumCalculator from "@spectrum-icons/workflow/Calculator";
+import SpectrumShield from "@spectrum-icons/workflow/Shield";
+import SpectrumSettings from "@spectrum-icons/workflow/Settings";
+import SpectrumBranch1 from "@spectrum-icons/workflow/Branch1";
+import SpectrumAlert from "@spectrum-icons/workflow/Alert";
+import SpectrumSandbox from "@spectrum-icons/workflow/Sandbox";
+import SpectrumChannel from "@spectrum-icons/workflow/Channel";
+import SpectrumViewAllTags from "@spectrum-icons/workflow/ViewAllTags";
+import SpectrumOffer from "@spectrum-icons/workflow/Offer";
+import SpectrumCollection from "@spectrum-icons/workflow/Collection";
+import SpectrumData from "@spectrum-icons/workflow/Data";
+import SpectrumImport from "@spectrum-icons/workflow/Import";
+import SpectrumExport from "@spectrum-icons/workflow/Export";
+import SpectrumLockClosed from "@spectrum-icons/workflow/LockClosed";
+import SpectrumDataCheck from "@spectrum-icons/workflow/DataCheck";
+import SpectrumDataRefresh from "@spectrum-icons/workflow/DataRefresh";
+import SpectrumDocument from "@spectrum-icons/workflow/Document";
+
+// Wraps a Spectrum workflow icon so it accepts a className prop (matches lucide's API)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function si(Icon: React.ComponentType<any>) {
+  return function SpectrumIconWrapper({ className }: { className?: string }) {
+    return <Icon UNSAFE_className={className} size="S" aria-hidden />;
+  };
+}
 
 // -----------------------------
 // Types (adapted to the JSON)
@@ -254,7 +295,7 @@ function FilterDropdown({
           <span className="min-w-[62px] text-slate-500">{label}:</span>
           <span className="max-w-[120px] truncate font-medium text-slate-800">{value}</span>
         </span>
-        <ChevronDown className="h-3.5 w-3.5 shrink-0 text-slate-500" aria-hidden="true" />
+        <SpectrumChevronDown size="XS" UNSAFE_className="text-slate-500" aria-hidden />
       </button>
 
       {open && (
@@ -294,23 +335,23 @@ const VIOLET = {
   tint: "#eaf2ff",
 };
 
-const SIDEBAR_HOME: SidebarItem = { label: "Home", icon: Home };
+const SIDEBAR_HOME: SidebarItem = { label: "Home", icon: si(SpectrumHome) };
 
 const SIDEBAR_GROUPS: SidebarGroup[] = [
   {
     title: "Journey Management",
     collapsible: true,
     items: [
-      { label: "Campaigns", icon: Megaphone },
-      { label: "Journeys", icon: Workflow },
-      { label: "Reports", icon: FileText },
+      { label: "Campaigns", icon: si(SpectrumCampaign) },
+      { label: "Journeys", icon: si(SpectrumJourney) },
+      { label: "Reports", icon: si(SpectrumReport) },
     ],
   },
   {
     title: "Use Case Playbooks",
     collapsible: true,
     items: [
-      { label: "Playbooks", icon: LayoutList },
+      { label: "Playbooks", icon: si(SpectrumOffer) },
       { label: "Predictive Insights Studio", icon: LayoutGrid, clickable: true, active: true },
     ],
   },
@@ -318,7 +359,7 @@ const SIDEBAR_GROUPS: SidebarGroup[] = [
     title: "Decisioning",
     collapsible: true,
     items: [
-      { label: "Catalogs", icon: LayoutGrid },
+      { label: "Catalogs", icon: si(SpectrumCollection) },
       { label: "Strategy setup", icon: Target },
     ],
   },
@@ -326,64 +367,64 @@ const SIDEBAR_GROUPS: SidebarGroup[] = [
     title: "Content Management",
     collapsible: true,
     items: [
-      { label: "Assets", icon: Image },
-      { label: "Content templates", icon: LayoutTemplate },
-      { label: "Fragments", icon: Puzzle },
-      { label: "Forms", icon: FileEdit },
-      { label: "Landing pages", icon: PanelTop },
-      { label: "Translations", icon: Globe },
+      { label: "Assets", icon: si(SpectrumAsset) },
+      { label: "Content templates", icon: si(SpectrumFileTemplate) },
+      { label: "Fragments", icon: si(SpectrumDocumentFragment) },
+      { label: "Forms", icon: si(SpectrumForm) },
+      { label: "Landing pages", icon: si(SpectrumHomepage) },
+      { label: "Translations", icon: si(SpectrumGlobe) },
     ],
   },
   {
     title: "Data Management",
     collapsible: true,
     items: [
-      { label: "Schemas", icon: Network },
-      { label: "Datasets", icon: Database },
-      { label: "Queries", icon: Terminal },
-      { label: "Monitoring", icon: Activity },
+      { label: "Schemas", icon: si(SpectrumPlatformDataMapping) },
+      { label: "Datasets", icon: si(SpectrumData) },
+      { label: "Queries", icon: si(SpectrumSQLQuery) },
+      { label: "Monitoring", icon: si(SpectrumMonitoring) },
     ],
   },
   {
     title: "Connections",
     collapsible: true,
     items: [
-      { label: "Sources", icon: ArrowRightCircle },
-      { label: "Destinations", icon: ArrowLeftCircle },
+      { label: "Sources", icon: si(SpectrumImport) },
+      { label: "Destinations", icon: si(SpectrumExport) },
     ],
   },
   {
     title: "Customer",
     collapsible: true,
     items: [
-      { label: "Audiences", icon: Users },
-      { label: "Subscription lists", icon: ListChecks },
-      { label: "Profiles", icon: UserCircle },
-      { label: "Identities", icon: Fingerprint },
-      { label: "Sample Size Calculator", icon: Calculator },
+      { label: "Audiences", icon: si(SpectrumUserGroup) },
+      { label: "Subscription lists", icon: si(SpectrumSubscribe) },
+      { label: "Profiles", icon: si(SpectrumRealTimeCustomerProfile) },
+      { label: "Identities", icon: si(SpectrumIdentityService) },
+      { label: "Sample Size Calculator", icon: si(SpectrumCalculator) },
     ],
   },
   {
     title: "Privacy",
     collapsible: true,
     items: [
-      { label: "Policies", icon: ShieldCheck },
-      { label: "Requests", icon: Inbox },
-      { label: "Audits", icon: SearchCheck },
-      { label: "Data Lifecycle", icon: Recycle },
+      { label: "Policies", icon: si(SpectrumShield) },
+      { label: "Requests", icon: si(SpectrumLockClosed) },
+      { label: "Audits", icon: si(SpectrumDataCheck) },
+      { label: "Data Lifecycle", icon: si(SpectrumDataRefresh) },
     ],
   },
   {
     title: "Administration",
     collapsible: true,
     items: [
-      { label: "Configurations", icon: Settings },
-      { label: "Business rules", icon: GitBranch },
-      { label: "Alerts", icon: AlertTriangle },
-      { label: "Sandboxes", icon: Boxes },
-      { label: "Channels", icon: Sliders },
-      { label: "Tags", icon: Tag },
-      { label: "License Usage", icon: BadgeCheck },
+      { label: "Configurations", icon: si(SpectrumSettings) },
+      { label: "Business rules", icon: si(SpectrumBranch1) },
+      { label: "Alerts", icon: si(SpectrumAlert) },
+      { label: "Sandboxes", icon: si(SpectrumSandbox) },
+      { label: "Channels", icon: si(SpectrumChannel) },
+      { label: "Tags", icon: si(SpectrumViewAllTags) },
+      { label: "License Usage", icon: si(SpectrumDocument) },
     ],
   },
 ];
@@ -482,7 +523,7 @@ function Modal({
               className="flex h-7 w-7 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0265dc]"
               aria-label="Close"
             >
-              <X className="h-4 w-4" />
+              <SpectrumClose size="S" aria-hidden />
             </button>
           </div>
 
@@ -925,7 +966,7 @@ export default function PlaybooksDashboard() {
         {/* Center zone */}
         <div className="hidden flex-1 justify-center md:flex">
           <div className="flex h-8 w-full max-w-[430px] items-center gap-2 rounded-full border border-slate-300 bg-slate-50 px-3 text-xs text-slate-500">
-            <Search className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            <SpectrumSearch size="S" aria-hidden />
             <span className="truncate">Search Experience Cloud (Ctrl+/)</span>
           </div>
         </div>
@@ -949,7 +990,7 @@ export default function PlaybooksDashboard() {
               className="flex h-7 w-7 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100"
               onClick={() => setIsHeaderOverflowOpen((prev) => !prev)}
             >
-              <MoreHorizontal className="h-4 w-4" />
+              <SpectrumMore size="S" aria-hidden />
             </button>
             {isHeaderOverflowOpen && (
               <div
@@ -972,14 +1013,14 @@ export default function PlaybooksDashboard() {
             aria-label="Help"
             className="flex h-7 w-7 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100"
           >
-            <HelpCircle className="h-4 w-4" />
+            <SpectrumHelp size="S" aria-hidden />
           </button>
           <button
             type="button"
             aria-label="Notifications"
             className="relative flex h-7 w-7 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100"
           >
-            <Bell className="h-4 w-4" />
+            <SpectrumBell size="S" aria-hidden />
             <span className="absolute right-0.5 top-0.5 flex h-3.5 min-w-[14px] items-center justify-center rounded-full bg-[#0265dc] px-0.5 text-[9px] font-bold leading-none text-white">
               9+
             </span>
@@ -989,7 +1030,7 @@ export default function PlaybooksDashboard() {
             aria-label="App switcher"
             className="flex h-7 w-7 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100"
           >
-            <Grid3x3 className="h-4 w-4" />
+            <SpectrumApps size="S" aria-hidden />
           </button>
           <button
             type="button"
@@ -1028,7 +1069,7 @@ export default function PlaybooksDashboard() {
                   title={group.title}
                 >
                   {!isSidebarCollapsed && <span>{group.title}</span>}
-                  {group.collapsible && <ChevronDown className="h-3 w-3 text-slate-400" aria-hidden="true" />}
+                  {group.collapsible && <SpectrumChevronDown size="XXS" UNSAFE_className="text-slate-400" aria-hidden />}
                 </div>
                 <div className="space-y-0.5">
                   {group.items.map((item) => {
