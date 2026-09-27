@@ -42,6 +42,7 @@ import SpectrumLockClosed from "@spectrum-icons/workflow/LockClosed";
 import SpectrumDataCheck from "@spectrum-icons/workflow/DataCheck";
 import SpectrumDataRefresh from "@spectrum-icons/workflow/DataRefresh";
 import { ActionButton } from "@react-spectrum/button";
+import { Badge } from "@react-spectrum/badge";
 import SpectrumSearch from "@spectrum-icons/workflow/Search";
 import SpectrumDocument from "@spectrum-icons/workflow/Document";
 
@@ -130,19 +131,10 @@ function confidenceLabel(score: number): "High" | "Medium" | "Low" {
   return "Low";
 }
 
-function confidenceColor(score: number) {
-  // Spectrum-ish semantics
-  if (score >= 0.98)
-    return {
-      dot: "bg-emerald-600",
-      pill: "bg-emerald-50 text-emerald-800 border-emerald-200",
-    };
-  if (score >= 0.95)
-    return {
-      dot: "bg-amber-500",
-      pill: "bg-amber-50 text-amber-800 border-amber-200",
-    };
-  return { dot: "bg-red-600", pill: "bg-red-50 text-red-800 border-red-200" };
+function confidenceBadgeVariant(score: number): "positive" | "notice" | "negative" {
+  if (score >= 0.98) return "positive";
+  if (score >= 0.95) return "notice";
+  return "negative";
 }
 
 function churnRiskLabel(churnRate?: number) {
@@ -549,7 +541,7 @@ function RoiModule({ roi }: { roi: RoiResult }) {
   const conf = roi?.confidence_score ?? 0;
   const lift = roi?.expected_conversion_lift;
   const confTxt = confidenceLabel(conf);
-  const confTone = confidenceColor(conf);
+  const confVariant = confidenceBadgeVariant(conf);
 
   // Create a simple interval around ROI (placeholder until model-supplied bounds are available).
   const intervalMin = roiVal * 0.9;
@@ -572,10 +564,7 @@ function RoiModule({ roi }: { roi: RoiResult }) {
             {roiVal.toFixed(2)}×
           </div>
 
-          <div className={`flex items-center gap-2 rounded-full border px-3 py-2 ${confTone.pill}`}>
-            <span className={`h-2.5 w-2.5 rounded-full ${confTone.dot}`} />
-            <span className="text-sm font-medium">{confTxt} Confidence</span>
-          </div>
+          <Badge variant={confVariant}>{confTxt} Confidence</Badge>
         </div>
 
         {/* 95% interval values */}
@@ -1348,7 +1337,7 @@ export default function PlaybooksDashboard() {
                         const roi = uc.roi_result;
                         const roiVal = roi?.estimated_roi;
                         const conf = roi?.confidence_score ?? 0;
-                        const confTone = confidenceColor(conf);
+                        const confVariant = confidenceBadgeVariant(conf);
                         const isSelected = selectedUseCaseIds.has(uc.use_case_id);
                         const selectedCellClass = isSelected ? "bg-blue-50 border-y border-blue-300" : "";
                         const leftEdgeClass = isSelected ? "border-l border-blue-300" : "";
@@ -1416,12 +1405,7 @@ export default function PlaybooksDashboard() {
                             </td>
                             <td className={`px-4 py-3 text-center ${selectedCellClass} ${rightEdgeClass}`}>
                               {roiVal != null ? (
-                                <span
-                                  className={`inline-flex w-[88px] items-center justify-start gap-1.5 rounded-full border px-2 py-1 text-[12px] ${confTone.pill}`}
-                                >
-                                  <span className={`h-2 w-2 rounded-full ${confTone.dot}`} />
-                                  {confidenceLabel(conf)}
-                                </span>
+                                <Badge variant={confVariant}>{confidenceLabel(conf)}</Badge>
                               ) : (
                                 <span className="text-slate-500">—</span>
                               )}
