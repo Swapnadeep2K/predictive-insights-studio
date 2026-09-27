@@ -1,7 +1,7 @@
 ﻿"use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Menu, LayoutGrid, Target } from "lucide-react";
+import { Menu, LayoutGrid, Target, ChevronDown } from "lucide-react";
 import SpectrumHelp from "@spectrum-icons/workflow/Help";
 import SpectrumBell from "@spectrum-icons/workflow/Bell";
 import SpectrumApps from "@spectrum-icons/workflow/Apps";
@@ -572,6 +572,13 @@ export default function PlaybooksDashboard() {
     if (typeof window === "undefined") return false;
     return localStorage.getItem("sidebarCollapsed") === "true";
   });
+  const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
+  const toggleSection = (title: string) =>
+    setCollapsedSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(title)) next.delete(title); else next.add(title);
+      return next;
+    });
   const [isDescExpanded, setIsDescExpanded] = useState<boolean>(false);
   const [hasDescOverflow, setHasDescOverflow] = useState<boolean>(false);
   const [isHypExpanded, setIsHypExpanded] = useState<boolean>(false);
@@ -923,11 +930,11 @@ export default function PlaybooksDashboard() {
       <div className="flex min-h-0 flex-1">
         {/* Left navigation */}
         <aside
-          className={`hidden h-full overflow-y-auto overscroll-contain border-r border-slate-200 bg-slate-100 transition-all duration-200 md:block ${
+          className={`hidden h-full overflow-y-auto overscroll-contain border-r border-slate-200 bg-white transition-all duration-200 md:block ${
             isSidebarCollapsed ? "w-14" : "w-72"
           }`}
         >
-          <nav className={`space-y-3 py-3 ${isSidebarCollapsed ? "px-1.5" : "px-3"}`}>
+          <nav className={`space-y-5 py-3 ${isSidebarCollapsed ? "px-1.5" : "px-3"}`}>
             <div
               className={`rounded-md py-1.5 text-[13px] text-slate-700 ${
                 isSidebarCollapsed ? "flex justify-center px-0" : "flex items-center gap-2 px-2"
@@ -938,18 +945,40 @@ export default function PlaybooksDashboard() {
               {!isSidebarCollapsed && <span>{SIDEBAR_HOME.label}</span>}
             </div>
 
-            {SIDEBAR_GROUPS.map((group) => (
+            {SIDEBAR_GROUPS.map((group) => {
+              const isSectionCollapsed = collapsedSections.has(group.title);
+              return (
               <section key={group.title} className="space-y-1.5">
-                <div
-                  className={`flex items-center text-[12px] font-medium text-slate-500 ${
-                    isSidebarCollapsed ? "justify-center px-0" : "justify-between px-2"
-                  }`}
-                  title={group.title}
-                >
-                  {!isSidebarCollapsed && <span>{group.title}</span>}
-                  {group.collapsible && <SpectrumChevronDown size="XXS" UNSAFE_className="text-slate-400" aria-hidden />}
-                </div>
-                <div className="space-y-0.5">
+                {group.collapsible ? (
+                  <button
+                    type="button"
+                    onClick={() => !isSidebarCollapsed && toggleSection(group.title)}
+                    className={`flex w-full items-center gap-3 text-[13px] font-medium text-slate-400 hover:text-slate-600 ${
+                      isSidebarCollapsed ? "justify-center px-0" : "px-2"
+                    }`}
+                    title={group.title}
+                    aria-expanded={!isSectionCollapsed}
+                  >
+                    {!isSidebarCollapsed && (
+                      <ChevronDown
+                        className="h-4 w-4 shrink-0 text-slate-400 transition-transform duration-150"
+                        style={{ transform: isSectionCollapsed ? "rotate(-90deg)" : "rotate(0deg)" }}
+                        aria-hidden
+                      />
+                    )}
+                    {!isSidebarCollapsed && <span>{group.title}</span>}
+                  </button>
+                ) : (
+                  <div
+                    className={`flex items-center text-[13px] font-medium text-slate-400 ${
+                      isSidebarCollapsed ? "justify-center px-0" : "px-2"
+                    }`}
+                    title={group.title}
+                  >
+                    {!isSidebarCollapsed && <span>{group.title}</span>}
+                  </div>
+                )}
+                {!isSectionCollapsed && <div className="space-y-0.5">
                   {group.items.map((item) => {
                     if (item.clickable) {
                       return (
@@ -981,9 +1010,10 @@ export default function PlaybooksDashboard() {
                       </div>
                     );
                   })}
-                </div>
+                </div>}
               </section>
-            ))}
+              );
+            })}
 
           </nav>
         </aside>
