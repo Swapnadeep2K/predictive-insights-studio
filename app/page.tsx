@@ -8,7 +8,7 @@ import {
   Users, ListChecks, ChevronDown, HelpCircle, Bell, Grid3x3,
   Target, FileEdit, UserCircle, Fingerprint, Calculator,
   ShieldCheck, Inbox, SearchCheck, Recycle,
-  Settings, GitBranch, AlertTriangle, Boxes, Sliders, Tag, BadgeCheck, X,
+  Settings, GitBranch, AlertTriangle, Boxes, Sliders, Tag, BadgeCheck, X, MoreHorizontal,
 } from "lucide-react";
 
 // -----------------------------
@@ -629,6 +629,8 @@ export default function PlaybooksDashboard() {
   const [retryCount, setRetryCount] = useState<number>(0);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [isHeaderOverflowOpen, setIsHeaderOverflowOpen] = useState(false);
+  const headerOverflowRef = useRef<HTMLDivElement | null>(null);
 
   const segmentKeys = useMemo(() => (data ? Object.keys(data).sort() : []), [data]);
   const [selectedSegmentKey, setSelectedSegmentKey] = useState<string | null>(null);
@@ -855,6 +857,17 @@ export default function PlaybooksDashboard() {
   }, [isSidebarCollapsed]);
 
   useEffect(() => {
+    if (!isHeaderOverflowOpen) return;
+    const onDocClick = (e: MouseEvent) => {
+      if (!headerOverflowRef.current?.contains(e.target as Node)) {
+        setIsHeaderOverflowOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, [isHeaderOverflowOpen]);
+
+  useEffect(() => {
     if (!selectAllRef.current) return;
     selectAllRef.current.indeterminate = someSelected;
   }, [someSelected, selectedUseCaseIds, useCases]);
@@ -919,12 +932,41 @@ export default function PlaybooksDashboard() {
 
         {/* Right zone */}
         <div className="flex flex-1 items-center justify-end gap-1.5 text-xs">
-          <span className="hidden text-slate-600 lg:inline">Demo Org</span>
+          {/* Org + sandbox — visible at xl; overflow menu below xl */}
+          <span className="hidden text-slate-600 xl:inline">Demo Org</span>
           <div className="hidden items-center gap-1 xl:flex">
             <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700">Dev</span>
             <span className="max-w-[160px] truncate text-slate-600">Demo Sandbox</span>
           </div>
           <div className="mx-1 hidden h-5 w-px bg-slate-200 xl:block" aria-hidden="true" />
+
+          {/* Overflow button — shown below xl */}
+          <div ref={headerOverflowRef} className="relative xl:hidden">
+            <button
+              type="button"
+              aria-label="More options"
+              aria-expanded={isHeaderOverflowOpen}
+              className="flex h-7 w-7 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100"
+              onClick={() => setIsHeaderOverflowOpen((prev) => !prev)}
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </button>
+            {isHeaderOverflowOpen && (
+              <div
+                className="absolute right-0 top-full z-50 mt-1 w-48 rounded-md border border-slate-200 bg-white py-2 shadow-md"
+                onMouseLeave={() => setIsHeaderOverflowOpen(false)}
+              >
+                <div className="border-b border-slate-100 px-3 pb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">Context</div>
+                <div className="px-3 pt-2 space-y-1.5">
+                  <div className="text-[13px] text-slate-700">Demo Org</div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-700">Dev</span>
+                    <span className="text-[13px] text-slate-600">Demo Sandbox</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
           <button
             type="button"
             aria-label="Help"
