@@ -1261,7 +1261,7 @@ export default function PlaybooksDashboard() {
                             </td>
                             <td className={`px-4 py-3 ${selectedCellClass}`}>
                               <button
-                                className="block max-w-full font-semibold text-[#0265dc] hover:underline"
+                                className="block w-full overflow-hidden text-left font-semibold text-[#0265dc] hover:underline"
                                 title={formatDisplayValue(uc.use_case_title)}
                                 onClick={(e) => {
                                   e.stopPropagation();
@@ -1273,7 +1273,7 @@ export default function PlaybooksDashboard() {
                                   setModalUseCase(uc);
                                 }}
                               >
-                                <TruncateText text={formatDisplayValue(uc.use_case_title)} as="span" />
+                                <TruncateText text={formatDisplayValue(uc.use_case_title)} as="div" />
                               </button>
                               {uc.where_to_show?.surface ? (
                                 <TruncateText text={formatDisplayValue(uc.where_to_show.surface)} as="div" className="mt-1 text-xs text-slate-500" />
