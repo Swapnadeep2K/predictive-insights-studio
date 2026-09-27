@@ -7,7 +7,6 @@ import SpectrumBell from "@spectrum-icons/workflow/Bell";
 import SpectrumApps from "@spectrum-icons/workflow/Apps";
 import SpectrumMore from "@spectrum-icons/workflow/More";
 import SpectrumChevronDown from "@spectrum-icons/workflow/ChevronDown";
-import SpectrumClose from "@spectrum-icons/workflow/Close";
 import SpectrumHome from "@spectrum-icons/workflow/Home";
 import SpectrumCampaign from "@spectrum-icons/workflow/Campaign";
 import SpectrumJourney from "@spectrum-icons/workflow/Journey";
@@ -41,8 +40,10 @@ import SpectrumExport from "@spectrum-icons/workflow/Export";
 import SpectrumLockClosed from "@spectrum-icons/workflow/LockClosed";
 import SpectrumDataCheck from "@spectrum-icons/workflow/DataCheck";
 import SpectrumDataRefresh from "@spectrum-icons/workflow/DataRefresh";
-import { ActionButton } from "@react-spectrum/button";
+import { ActionButton, Button } from "@react-spectrum/button";
 import { Badge } from "@react-spectrum/badge";
+import { DialogContainer, Dialog } from "@react-spectrum/dialog";
+import { Heading, Header, Divider, Content, ButtonGroup } from "@adobe/react-spectrum";
 import SpectrumSearch from "@spectrum-icons/workflow/Search";
 import SpectrumDocument from "@spectrum-icons/workflow/Document";
 
@@ -424,115 +425,6 @@ const SIDEBAR_GROUPS: SidebarGroup[] = [
 
 // -----------------------------
 // Modal
-// -----------------------------
-function Modal({
-  open,
-  onClose,
-  title,
-  children,
-  footer,
-}: {
-  open: boolean;
-  onClose: () => void;
-  title: string;
-  children: React.ReactNode;
-  footer?: React.ReactNode;
-}) {
-  const panelRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!open) return;
-
-    const previouslyFocused = document.activeElement as HTMLElement | null;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    const focusSelector = 'button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])';
-    const panel = panelRef.current;
-    const firstFocusable = panel?.querySelector<HTMLElement>(focusSelector);
-    (firstFocusable ?? panel)?.focus();
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        onClose();
-        return;
-      }
-
-      if (event.key !== "Tab") return;
-      const currentPanel = panelRef.current;
-      if (!currentPanel) return;
-
-      const focusables = Array.from(currentPanel.querySelectorAll<HTMLElement>(focusSelector)).filter(
-        (el) => !el.hasAttribute("disabled") && el.tabIndex !== -1
-      );
-      if (!focusables.length) {
-        event.preventDefault();
-        currentPanel.focus();
-        return;
-      }
-
-      const first = focusables[0];
-      const last = focusables[focusables.length - 1];
-      const active = document.activeElement;
-
-      if (event.shiftKey && active === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && active === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = previousOverflow;
-      previouslyFocused?.focus();
-    };
-  }, [open, onClose]);
-
-  if (!open) return null;
-
-  return (
-    <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label={title}>
-      <div className="absolute inset-0 bg-slate-900/35" onClick={onClose} aria-hidden="true" />
-      <div className="absolute inset-0 flex items-center justify-center p-3 sm:p-4">
-        <div
-          ref={panelRef}
-          tabIndex={-1}
-          className="flex max-h-[85vh] w-full max-w-3xl flex-col rounded-md border border-slate-200 bg-white shadow-sm outline-none xl:max-w-5xl"
-        >
-          <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 sm:px-5">
-            <div className="min-w-0">
-              <div className="truncate text-base font-semibold text-slate-900" title={title}>
-                {title}
-              </div>
-              <div className="text-xs text-slate-500">Use Case Details</div>
-            </div>
-            <button
-              onClick={onClose}
-              className="flex h-7 w-7 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0265dc]"
-              aria-label="Close"
-            >
-              <SpectrumClose size="S" aria-hidden />
-            </button>
-          </div>
-
-          <div className="min-h-0 overflow-y-auto px-4 py-4 sm:px-5 sm:py-5">{children}</div>
-
-          {footer && (
-            <div className="sticky bottom-0 z-10 flex items-center justify-between border-t border-slate-200 bg-white px-4 py-3 sm:px-5">
-              {footer}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // -----------------------------
 // ROI Module
 // -----------------------------
@@ -1455,125 +1347,114 @@ export default function PlaybooksDashboard() {
         </div>
       )}
 
-      {/* ROI Modal */}
-      <Modal
-        open={!!modalUseCase}
-        onClose={() => setModalUseCase(null)}
-        title={formatDisplayValue(modalUseCase?.use_case_title ?? "Use case")}
-        footer={
-          modalUseCase ? (
-            <>
-              <button
-                className="rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0265dc]"
-                onClick={() => {}}
-              >
-                View Full Details
-              </button>
+      {/* ROI Dialog */}
+      <DialogContainer onDismiss={() => setModalUseCase(null)}>
+        {modalUseCase && (
+          <Dialog size="XL">
+            <Heading>{formatDisplayValue(modalUseCase.use_case_title ?? "Use case")}</Heading>
+            <Header>Use Case Details</Header>
+            <Divider />
+            <Content>
+              {!modalUseCase.roi_result ? (
+                <div className="text-sm text-slate-600">No ROI result available for this use case.</div>
+              ) : (
+                <>
+                  <RoiModule roi={modalUseCase.roi_result} />
 
-              <button
-                className="rounded-md px-4 py-2 text-sm font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0265dc]"
-                style={{ background: VIOLET.accent }}
-                onClick={() => {}}
-              >
-                Activate
-              </button>
-            </>
-          ) : undefined
-        }
-      >
-        {!modalUseCase?.roi_result ? (
-          <div className="text-sm text-slate-600">No ROI result available for this use case.</div>
-        ) : (
-          <>
-            <RoiModule roi={modalUseCase.roi_result} />
+                  <div className="mt-7 border-t border-slate-200 pt-6">
+                    <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                      <div className="rounded-md border border-slate-200 p-4">
+                        <div className="text-sm font-semibold text-slate-900">What</div>
+                        {modalUseCase.what_to_show?.message ? (
+                          <div className="mt-2 text-sm text-slate-600" title={modalUseCase.what_to_show.message}>
+                            <div className="line-clamp-3">{modalUseCase.what_to_show.message}</div>
+                          </div>
+                        ) : (
+                          <div className="mt-2 text-sm text-slate-600">—</div>
+                        )}
+                        {modalUseCase.what_to_show?.explanation && (
+                          <div className="mt-3 border-t border-slate-100 pt-3 text-xs text-slate-500" title={modalUseCase.what_to_show.explanation}>
+                            <div className="line-clamp-3">{modalUseCase.what_to_show.explanation}</div>
+                          </div>
+                        )}
+                      </div>
 
-            <div className="mt-7 border-t border-slate-200 pt-6">
-              <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-              <div className="rounded-md border border-slate-200 p-4">
-                <div className="text-sm font-semibold text-slate-900">What</div>
-                {modalUseCase.what_to_show?.message ? (
-                  <div className="mt-2 text-sm text-slate-600" title={modalUseCase.what_to_show.message}>
-                    <div className="line-clamp-3">{modalUseCase.what_to_show.message}</div>
-                  </div>
-                ) : (
-                  <div className="mt-2 text-sm text-slate-600">—</div>
-                )}
-                {modalUseCase.what_to_show?.explanation && (
-                  <div className="mt-3 border-t border-slate-100 pt-3 text-xs text-slate-500" title={modalUseCase.what_to_show.explanation}>
-                    <div className="line-clamp-3">{modalUseCase.what_to_show.explanation}</div>
-                  </div>
-                )}
-              </div>
+                      <div className="rounded-md border border-slate-200 p-4">
+                        <div className="text-sm font-semibold text-slate-900">Where / When</div>
+                        <div className="mt-2 space-y-1.5 text-sm text-slate-700">
+                          <div>
+                            <span className="text-slate-500">Channel:</span>{" "}
+                            <span title={formatDisplayValue(modalUseCase.where_to_show?.channel)}>
+                              {formatDisplayValue(modalUseCase.where_to_show?.channel)}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-slate-500">Surface:</span>{" "}
+                            <span title={formatDisplayValue(modalUseCase.where_to_show?.surface)}>
+                              {formatDisplayValue(modalUseCase.where_to_show?.surface)}
+                            </span>
+                          </div>
+                          <div className="mt-2">
+                            <span className="text-slate-500">Trigger:</span>{" "}
+                            <span title={formatDisplayValue(modalUseCase.when_to_show?.trigger)}>
+                              {formatDisplayValue(modalUseCase.when_to_show?.trigger)}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-slate-500">Frequency:</span>{" "}
+                            <span title={formatDisplayValue(modalUseCase.when_to_show?.frequency)}>
+                              {formatDisplayValue(modalUseCase.when_to_show?.frequency)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
 
-              <div className="rounded-md border border-slate-200 p-4">
-                <div className="text-sm font-semibold text-slate-900">Where / When</div>
-                <div className="mt-2 space-y-1.5 text-sm text-slate-700">
-                  <div>
-                    <span className="text-slate-500">Channel:</span>{" "}
-                    <span title={formatDisplayValue(modalUseCase.where_to_show?.channel)}>
-                      {formatDisplayValue(modalUseCase.where_to_show?.channel)}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500">Surface:</span>{" "}
-                    <span title={formatDisplayValue(modalUseCase.where_to_show?.surface)}>
-                      {formatDisplayValue(modalUseCase.where_to_show?.surface)}
-                    </span>
-                  </div>
-                  <div className="mt-2">
-                    <span className="text-slate-500">Trigger:</span>{" "}
-                    <span title={formatDisplayValue(modalUseCase.when_to_show?.trigger)}>
-                      {formatDisplayValue(modalUseCase.when_to_show?.trigger)}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500">Frequency:</span>{" "}
-                    <span title={formatDisplayValue(modalUseCase.when_to_show?.frequency)}>
-                      {formatDisplayValue(modalUseCase.when_to_show?.frequency)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-md border border-slate-200 p-4 lg:col-span-2">
-                <div className="text-sm font-semibold text-slate-900">Hypothesis / Targeting</div>
-                <div className="mt-2 text-sm text-slate-600" title={modalUseCase.hypothesis ?? "—"}>
-                  <div className={isHypExpanded ? "" : "line-clamp-2"}>{modalUseCase.hypothesis ?? "—"}</div>
-                </div>
-                {(modalUseCase.hypothesis?.length ?? 0) > 180 && (
-                  <button
-                    type="button"
-                    className="mt-2 text-xs font-semibold text-slate-500 hover:text-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500"
-                    onClick={() => setIsHypExpanded((prev) => !prev)}
-                  >
-                    {isHypExpanded ? "Show less" : "Read more"}
-                  </button>
-                )}
-                {modalUseCase.target_criteria && (
-                  <div
-                    className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3 font-mono text-xs text-slate-700"
-                    title={modalUseCase.target_criteria}
-                  >
-                    <div className={`whitespace-pre-wrap break-words ${isCriteriaExpanded ? "" : "line-clamp-2"}`}>
-                      {modalUseCase.target_criteria}
+                      <div className="rounded-md border border-slate-200 p-4 lg:col-span-2">
+                        <div className="text-sm font-semibold text-slate-900">Hypothesis / Targeting</div>
+                        <div className="mt-2 text-sm text-slate-600" title={modalUseCase.hypothesis ?? "—"}>
+                          <div className={isHypExpanded ? "" : "line-clamp-2"}>{modalUseCase.hypothesis ?? "—"}</div>
+                        </div>
+                        {(modalUseCase.hypothesis?.length ?? 0) > 180 && (
+                          <button
+                            type="button"
+                            className="mt-2 text-xs font-semibold text-slate-500 hover:text-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500"
+                            onClick={() => setIsHypExpanded((prev) => !prev)}
+                          >
+                            {isHypExpanded ? "Show less" : "Read more"}
+                          </button>
+                        )}
+                        {modalUseCase.target_criteria && (
+                          <div
+                            className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3 font-mono text-xs text-slate-700"
+                            title={modalUseCase.target_criteria}
+                          >
+                            <div className={`whitespace-pre-wrap break-words ${isCriteriaExpanded ? "" : "line-clamp-2"}`}>
+                              {modalUseCase.target_criteria}
+                            </div>
+                            {modalUseCase.target_criteria.length > 180 && (
+                              <button
+                                type="button"
+                                className="mt-2 text-xs font-semibold text-slate-500 hover:text-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500"
+                                onClick={() => setIsCriteriaExpanded((prev) => !prev)}
+                              >
+                                {isCriteriaExpanded ? "Show less" : "Read more"}
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    {modalUseCase.target_criteria.length > 180 && (
-                      <button
-                        type="button"
-                        className="mt-2 text-xs font-semibold text-slate-500 hover:text-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500"
-                        onClick={() => setIsCriteriaExpanded((prev) => !prev)}
-                      >
-                        {isCriteriaExpanded ? "Show less" : "Read more"}
-                      </button>
-                    )}
                   </div>
-                )}
-              </div>
-            </div>
-            </div>
-          </>
+                </>
+              )}
+            </Content>
+            <ButtonGroup>
+              <Button variant="secondary" onPress={() => {}}>View Full Details</Button>
+              <Button variant="accent" onPress={() => {}}>Activate</Button>
+            </ButtonGroup>
+          </Dialog>
         )}
-      </Modal>
+      </DialogContainer>
     </div>
   );
 }
