@@ -1109,15 +1109,18 @@ export default function PlaybooksDashboard() {
 
                 <div className="mt-3 grid grid-cols-2 gap-2 xl:grid-cols-4">
                   {[
-                    { label: "Segment Size", value: segmentSize, suffix: "Customers" },
-                    { label: "Average Tenure", value: avgTenure, suffix: "Months" },
-                    { label: "Average Monthly", value: avgMonthly, suffix: "USD" },
-                    { label: "Upsell Propensity", value: upsell, suffix: "" },
+                    { label: "Segment Size", value: segmentSize, suffix: "Customers", Icon: SpectrumUserGroup },
+                    { label: "Avg. Tenure", value: avgTenure, suffix: "Months", Icon: SpectrumMonitoring },
+                    { label: "Avg. Monthly", value: avgMonthly, suffix: "USD", Icon: SpectrumCalculator },
+                    { label: "Upsell Score", value: upsell, suffix: "", Icon: SpectrumSubscribe },
                   ].map((metric) => (
-                    <div key={metric.label} className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
-                      <div className="text-[11px] font-medium uppercase tracking-wide text-slate-500">{metric.label}</div>
-                      <div className="mt-1 flex items-baseline gap-1">
-                        <TruncateText text={metric.value} as="div" className="text-sm font-semibold text-slate-900" />
+                    <div key={metric.label} className="rounded-md border border-slate-200 bg-slate-50 px-3 py-3">
+                      <div className="flex items-center justify-between">
+                        <div className="text-[11px] font-medium uppercase tracking-wide text-slate-500">{metric.label}</div>
+                        <span className="icon-sm text-slate-400"><metric.Icon /></span>
+                      </div>
+                      <div className="mt-1.5 flex items-baseline gap-1">
+                        <span className="text-base font-bold text-slate-900">{metric.value}</span>
                         {metric.suffix ? <span className="text-xs text-slate-500">{metric.suffix}</span> : null}
                       </div>
                     </div>

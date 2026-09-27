@@ -85,3 +85,9 @@ body {
     background: #e5e7eb;
   }
 }
+
+/* Force Spectrum workflow icons to a small fixed size */
+.icon-sm svg {
+  width: 14px;
+  height: 14px;
+}
