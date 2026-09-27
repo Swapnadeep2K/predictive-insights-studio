@@ -132,9 +132,9 @@ function confidenceLabel(score: number): "High" | "Medium" | "Low" {
   return "Low";
 }
 
-function confidenceBadgeVariant(score: number): "positive" | "notice" | "negative" {
+function confidenceBadgeVariant(score: number): "positive" | "yellow" | "negative" {
   if (score >= 0.98) return "positive";
-  if (score >= 0.95) return "notice";
+  if (score >= 0.95) return "yellow";
   return "negative";
 }
 
@@ -1350,7 +1350,7 @@ export default function PlaybooksDashboard() {
       {/* ROI Dialog */}
       <DialogContainer onDismiss={() => setModalUseCase(null)}>
         {modalUseCase && (
-          <Dialog size="XL">
+          <Dialog size="L">
             <Heading>{formatDisplayValue(modalUseCase.use_case_title ?? "Use case")}</Heading>
             <Header>Use Case Details</Header>
             <Divider />
