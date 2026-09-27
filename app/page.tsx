@@ -43,7 +43,7 @@ import SpectrumDataRefresh from "@spectrum-icons/workflow/DataRefresh";
 import { ActionButton, Button } from "@react-spectrum/button";
 import { Badge } from "@react-spectrum/badge";
 import { DialogContainer, Dialog } from "@react-spectrum/dialog";
-import { Heading, Header, Divider, Content, ButtonGroup } from "@adobe/react-spectrum";
+import { Heading, Header, Divider, Content, ButtonGroup, Footer } from "@adobe/react-spectrum";
 import SpectrumSearch from "@spectrum-icons/workflow/Search";
 import SpectrumDocument from "@spectrum-icons/workflow/Document";
 
@@ -1341,7 +1341,7 @@ export default function PlaybooksDashboard() {
       {/* ROI Dialog */}
       <DialogContainer onDismiss={() => setModalUseCase(null)}>
         {modalUseCase && (
-          <Dialog size="L" isDismissable>
+          <Dialog size="L">
             <Heading>{formatDisplayValue(modalUseCase.use_case_title ?? "Use case")}</Heading>
             <Header>Use Case Details</Header>
             <Divider />
@@ -1439,9 +1439,16 @@ export default function PlaybooksDashboard() {
                 </>
               )}
             </Content>
+            <Footer>
+              <Button variant="secondary" onPress={() => setModalUseCase(null)}>Cancel</Button>
+            </Footer>
             <ButtonGroup>
               <Button variant="secondary" onPress={() => {}}>View Full Details</Button>
-              <Button variant="accent" onPress={() => {}}>Activate</Button>
+              <Button variant="accent" onPress={() => {
+                setToastMessage(`"${formatDisplayValue(modalUseCase.use_case_title)}" activated.`);
+                toastTimerRef.current = setTimeout(() => setToastMessage(null), 4000);
+                setModalUseCase(null);
+              }}>Activate</Button>
             </ButtonGroup>
           </Dialog>
         )}
