@@ -1,15 +1,59 @@
 ﻿"use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import {
-  Menu, Search, Home, Megaphone, Workflow, FileText, LayoutList,
-  LayoutGrid, Image, LayoutTemplate, Palette, Puzzle, PanelTop, Globe,
-  Network, Database, Terminal, Activity, ArrowRightCircle, ArrowLeftCircle,
-  Users, ListChecks, ChevronDown, HelpCircle, Bell, Grid3x3,
-  Target, FileEdit, UserCircle, Fingerprint, Calculator,
-  ShieldCheck, Inbox, SearchCheck, Recycle,
-  Settings, GitBranch, AlertTriangle, Boxes, Sliders, Tag, BadgeCheck, X, MoreHorizontal,
-} from "lucide-react";
+import { Menu, LayoutGrid, Target } from "lucide-react";
+import SpectrumHelp from "@spectrum-icons/workflow/Help";
+import SpectrumBell from "@spectrum-icons/workflow/Bell";
+import SpectrumApps from "@spectrum-icons/workflow/Apps";
+import SpectrumMore from "@spectrum-icons/workflow/More";
+import SpectrumChevronDown from "@spectrum-icons/workflow/ChevronDown";
+import SpectrumHome from "@spectrum-icons/workflow/Home";
+import SpectrumCampaign from "@spectrum-icons/workflow/Campaign";
+import SpectrumJourney from "@spectrum-icons/workflow/Journey";
+import SpectrumReport from "@spectrum-icons/workflow/Report";
+import SpectrumAsset from "@spectrum-icons/workflow/Asset";
+import SpectrumFileTemplate from "@spectrum-icons/workflow/FileTemplate";
+import SpectrumDocumentFragment from "@spectrum-icons/workflow/DocumentFragment";
+import SpectrumForm from "@spectrum-icons/workflow/Form";
+import SpectrumHomepage from "@spectrum-icons/workflow/Homepage";
+import SpectrumGlobe from "@spectrum-icons/workflow/Globe";
+import SpectrumPlatformDataMapping from "@spectrum-icons/workflow/PlatformDataMapping";
+import SpectrumSQLQuery from "@spectrum-icons/workflow/SQLQuery";
+import SpectrumMonitoring from "@spectrum-icons/workflow/Monitoring";
+import SpectrumUserGroup from "@spectrum-icons/workflow/UserGroup";
+import SpectrumSubscribe from "@spectrum-icons/workflow/Subscribe";
+import SpectrumRealTimeCustomerProfile from "@spectrum-icons/workflow/RealTimeCustomerProfile";
+import SpectrumIdentityService from "@spectrum-icons/workflow/IdentityService";
+import SpectrumCalculator from "@spectrum-icons/workflow/Calculator";
+import SpectrumShield from "@spectrum-icons/workflow/Shield";
+import SpectrumSettings from "@spectrum-icons/workflow/Settings";
+import SpectrumBranch1 from "@spectrum-icons/workflow/Branch1";
+import SpectrumAlert from "@spectrum-icons/workflow/Alert";
+import SpectrumSandbox from "@spectrum-icons/workflow/Sandbox";
+import SpectrumChannel from "@spectrum-icons/workflow/Channel";
+import SpectrumViewAllTags from "@spectrum-icons/workflow/ViewAllTags";
+import SpectrumOffer from "@spectrum-icons/workflow/Offer";
+import SpectrumCollection from "@spectrum-icons/workflow/Collection";
+import SpectrumData from "@spectrum-icons/workflow/Data";
+import SpectrumImport from "@spectrum-icons/workflow/Import";
+import SpectrumExport from "@spectrum-icons/workflow/Export";
+import SpectrumLockClosed from "@spectrum-icons/workflow/LockClosed";
+import SpectrumDataCheck from "@spectrum-icons/workflow/DataCheck";
+import SpectrumDataRefresh from "@spectrum-icons/workflow/DataRefresh";
+import { ActionButton, Button } from "@react-spectrum/button";
+import { Badge } from "@react-spectrum/badge";
+import { DialogContainer, Dialog } from "@react-spectrum/dialog";
+import { Heading, Header, Divider, Content, ButtonGroup } from "@adobe/react-spectrum";
+import SpectrumSearch from "@spectrum-icons/workflow/Search";
+import SpectrumDocument from "@spectrum-icons/workflow/Document";
+
+// Wraps a Spectrum workflow icon so it accepts a className prop (matches lucide's API)
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function si(Icon: React.ComponentType<any>) {
+  return function SpectrumIconWrapper({ className }: { className?: string }) {
+    return <Icon UNSAFE_className={className} size="S" aria-hidden />;
+  };
+}
 
 // -----------------------------
 // Types (adapted to the JSON)
@@ -88,19 +132,10 @@ function confidenceLabel(score: number): "High" | "Medium" | "Low" {
   return "Low";
 }
 
-function confidenceColor(score: number) {
-  // Spectrum-ish semantics
-  if (score >= 0.98)
-    return {
-      dot: "bg-emerald-600",
-      pill: "bg-emerald-50 text-emerald-800 border-emerald-200",
-    };
-  if (score >= 0.95)
-    return {
-      dot: "bg-amber-500",
-      pill: "bg-amber-50 text-amber-800 border-amber-200",
-    };
-  return { dot: "bg-red-600", pill: "bg-red-50 text-red-800 border-red-200" };
+function confidenceBadgeVariant(score: number): "positive" | "notice" | "negative" {
+  if (score >= 0.98) return "positive";
+  if (score >= 0.95) return "notice";
+  return "negative";
 }
 
 function churnRiskLabel(churnRate?: number) {
@@ -254,7 +289,7 @@ function FilterDropdown({
           <span className="min-w-[62px] text-slate-500">{label}:</span>
           <span className="max-w-[120px] truncate font-medium text-slate-800">{value}</span>
         </span>
-        <ChevronDown className="h-3.5 w-3.5 shrink-0 text-slate-500" aria-hidden="true" />
+        <SpectrumChevronDown size="XS" UNSAFE_className="text-slate-500" aria-hidden />
       </button>
 
       {open && (
@@ -294,23 +329,23 @@ const VIOLET = {
   tint: "#eaf2ff",
 };
 
-const SIDEBAR_HOME: SidebarItem = { label: "Home", icon: Home };
+const SIDEBAR_HOME: SidebarItem = { label: "Home", icon: si(SpectrumHome) };
 
 const SIDEBAR_GROUPS: SidebarGroup[] = [
   {
     title: "Journey Management",
     collapsible: true,
     items: [
-      { label: "Campaigns", icon: Megaphone },
-      { label: "Journeys", icon: Workflow },
-      { label: "Reports", icon: FileText },
+      { label: "Campaigns", icon: si(SpectrumCampaign) },
+      { label: "Journeys", icon: si(SpectrumJourney) },
+      { label: "Reports", icon: si(SpectrumReport) },
     ],
   },
   {
     title: "Use Case Playbooks",
     collapsible: true,
     items: [
-      { label: "Playbooks", icon: LayoutList },
+      { label: "Playbooks", icon: si(SpectrumOffer) },
       { label: "Predictive Insights Studio", icon: LayoutGrid, clickable: true, active: true },
     ],
   },
@@ -318,7 +353,7 @@ const SIDEBAR_GROUPS: SidebarGroup[] = [
     title: "Decisioning",
     collapsible: true,
     items: [
-      { label: "Catalogs", icon: LayoutGrid },
+      { label: "Catalogs", icon: si(SpectrumCollection) },
       { label: "Strategy setup", icon: Target },
     ],
   },
@@ -326,179 +361,70 @@ const SIDEBAR_GROUPS: SidebarGroup[] = [
     title: "Content Management",
     collapsible: true,
     items: [
-      { label: "Assets", icon: Image },
-      { label: "Content templates", icon: LayoutTemplate },
-      { label: "Fragments", icon: Puzzle },
-      { label: "Forms", icon: FileEdit },
-      { label: "Landing pages", icon: PanelTop },
-      { label: "Translations", icon: Globe },
+      { label: "Assets", icon: si(SpectrumAsset) },
+      { label: "Content templates", icon: si(SpectrumFileTemplate) },
+      { label: "Fragments", icon: si(SpectrumDocumentFragment) },
+      { label: "Forms", icon: si(SpectrumForm) },
+      { label: "Landing pages", icon: si(SpectrumHomepage) },
+      { label: "Translations", icon: si(SpectrumGlobe) },
     ],
   },
   {
     title: "Data Management",
     collapsible: true,
     items: [
-      { label: "Schemas", icon: Network },
-      { label: "Datasets", icon: Database },
-      { label: "Queries", icon: Terminal },
-      { label: "Monitoring", icon: Activity },
+      { label: "Schemas", icon: si(SpectrumPlatformDataMapping) },
+      { label: "Datasets", icon: si(SpectrumData) },
+      { label: "Queries", icon: si(SpectrumSQLQuery) },
+      { label: "Monitoring", icon: si(SpectrumMonitoring) },
     ],
   },
   {
     title: "Connections",
     collapsible: true,
     items: [
-      { label: "Sources", icon: ArrowRightCircle },
-      { label: "Destinations", icon: ArrowLeftCircle },
+      { label: "Sources", icon: si(SpectrumImport) },
+      { label: "Destinations", icon: si(SpectrumExport) },
     ],
   },
   {
     title: "Customer",
     collapsible: true,
     items: [
-      { label: "Audiences", icon: Users },
-      { label: "Subscription lists", icon: ListChecks },
-      { label: "Profiles", icon: UserCircle },
-      { label: "Identities", icon: Fingerprint },
-      { label: "Sample Size Calculator", icon: Calculator },
+      { label: "Audiences", icon: si(SpectrumUserGroup) },
+      { label: "Subscription lists", icon: si(SpectrumSubscribe) },
+      { label: "Profiles", icon: si(SpectrumRealTimeCustomerProfile) },
+      { label: "Identities", icon: si(SpectrumIdentityService) },
+      { label: "Sample Size Calculator", icon: si(SpectrumCalculator) },
     ],
   },
   {
     title: "Privacy",
     collapsible: true,
     items: [
-      { label: "Policies", icon: ShieldCheck },
-      { label: "Requests", icon: Inbox },
-      { label: "Audits", icon: SearchCheck },
-      { label: "Data Lifecycle", icon: Recycle },
+      { label: "Policies", icon: si(SpectrumShield) },
+      { label: "Requests", icon: si(SpectrumLockClosed) },
+      { label: "Audits", icon: si(SpectrumDataCheck) },
+      { label: "Data Lifecycle", icon: si(SpectrumDataRefresh) },
     ],
   },
   {
     title: "Administration",
     collapsible: true,
     items: [
-      { label: "Configurations", icon: Settings },
-      { label: "Business rules", icon: GitBranch },
-      { label: "Alerts", icon: AlertTriangle },
-      { label: "Sandboxes", icon: Boxes },
-      { label: "Channels", icon: Sliders },
-      { label: "Tags", icon: Tag },
-      { label: "License Usage", icon: BadgeCheck },
+      { label: "Configurations", icon: si(SpectrumSettings) },
+      { label: "Business rules", icon: si(SpectrumBranch1) },
+      { label: "Alerts", icon: si(SpectrumAlert) },
+      { label: "Sandboxes", icon: si(SpectrumSandbox) },
+      { label: "Channels", icon: si(SpectrumChannel) },
+      { label: "Tags", icon: si(SpectrumViewAllTags) },
+      { label: "License Usage", icon: si(SpectrumDocument) },
     ],
   },
 ];
 
 // -----------------------------
 // Modal
-// -----------------------------
-function Modal({
-  open,
-  onClose,
-  title,
-  children,
-  footer,
-}: {
-  open: boolean;
-  onClose: () => void;
-  title: string;
-  children: React.ReactNode;
-  footer?: React.ReactNode;
-}) {
-  const panelRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!open) return;
-
-    const previouslyFocused = document.activeElement as HTMLElement | null;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-
-    const focusSelector = 'button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])';
-    const panel = panelRef.current;
-    const firstFocusable = panel?.querySelector<HTMLElement>(focusSelector);
-    (firstFocusable ?? panel)?.focus();
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        onClose();
-        return;
-      }
-
-      if (event.key !== "Tab") return;
-      const currentPanel = panelRef.current;
-      if (!currentPanel) return;
-
-      const focusables = Array.from(currentPanel.querySelectorAll<HTMLElement>(focusSelector)).filter(
-        (el) => !el.hasAttribute("disabled") && el.tabIndex !== -1
-      );
-      if (!focusables.length) {
-        event.preventDefault();
-        currentPanel.focus();
-        return;
-      }
-
-      const first = focusables[0];
-      const last = focusables[focusables.length - 1];
-      const active = document.activeElement;
-
-      if (event.shiftKey && active === first) {
-        event.preventDefault();
-        last.focus();
-      } else if (!event.shiftKey && active === last) {
-        event.preventDefault();
-        first.focus();
-      }
-    };
-
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = previousOverflow;
-      previouslyFocused?.focus();
-    };
-  }, [open, onClose]);
-
-  if (!open) return null;
-
-  return (
-    <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label={title}>
-      <div className="absolute inset-0 bg-slate-900/35" onClick={onClose} aria-hidden="true" />
-      <div className="absolute inset-0 flex items-center justify-center p-3 sm:p-4">
-        <div
-          ref={panelRef}
-          tabIndex={-1}
-          className="flex max-h-[85vh] w-full max-w-3xl flex-col rounded-md border border-slate-200 bg-white shadow-sm outline-none xl:max-w-5xl"
-        >
-          <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 sm:px-5">
-            <div className="min-w-0">
-              <div className="truncate text-base font-semibold text-slate-900" title={title}>
-                {title}
-              </div>
-              <div className="text-xs text-slate-500">Use Case Details</div>
-            </div>
-            <button
-              onClick={onClose}
-              className="flex h-7 w-7 items-center justify-center rounded-md text-slate-500 hover:bg-slate-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0265dc]"
-              aria-label="Close"
-            >
-              <X className="h-4 w-4" />
-            </button>
-          </div>
-
-          <div className="min-h-0 overflow-y-auto px-4 py-4 sm:px-5 sm:py-5">{children}</div>
-
-          {footer && (
-            <div className="sticky bottom-0 z-10 flex items-center justify-between border-t border-slate-200 bg-white px-4 py-3 sm:px-5">
-              {footer}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // -----------------------------
 // ROI Module
 // -----------------------------
@@ -507,7 +433,7 @@ function RoiModule({ roi }: { roi: RoiResult }) {
   const conf = roi?.confidence_score ?? 0;
   const lift = roi?.expected_conversion_lift;
   const confTxt = confidenceLabel(conf);
-  const confTone = confidenceColor(conf);
+  const confVariant = confidenceBadgeVariant(conf);
 
   // Create a simple interval around ROI (placeholder until model-supplied bounds are available).
   const intervalMin = roiVal * 0.9;
@@ -530,10 +456,7 @@ function RoiModule({ roi }: { roi: RoiResult }) {
             {roiVal.toFixed(2)}×
           </div>
 
-          <div className={`flex items-center gap-2 rounded-full border px-3 py-2 ${confTone.pill}`}>
-            <span className={`h-2.5 w-2.5 rounded-full ${confTone.dot}`} />
-            <span className="text-sm font-medium">{confTxt} Confidence</span>
-          </div>
+          <Badge variant={confVariant}>{confTxt} Confidence</Badge>
         </div>
 
         {/* 95% interval values */}
@@ -923,9 +846,9 @@ export default function PlaybooksDashboard() {
         </div>
 
         {/* Center zone */}
-        <div className="hidden flex-1 justify-center md:flex">
+        <div className="flex flex-1 items-center justify-center">
           <div className="flex h-8 w-full max-w-[430px] items-center gap-2 rounded-full border border-slate-300 bg-slate-50 px-3 text-xs text-slate-500">
-            <Search className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            <SpectrumSearch size="S" aria-hidden />
             <span className="truncate">Search Experience Cloud (Ctrl+/)</span>
           </div>
         </div>
@@ -949,7 +872,7 @@ export default function PlaybooksDashboard() {
               className="flex h-7 w-7 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100"
               onClick={() => setIsHeaderOverflowOpen((prev) => !prev)}
             >
-              <MoreHorizontal className="h-4 w-4" />
+              <SpectrumMore size="S" aria-hidden />
             </button>
             {isHeaderOverflowOpen && (
               <div
@@ -967,30 +890,26 @@ export default function PlaybooksDashboard() {
               </div>
             )}
           </div>
-          <button
-            type="button"
-            aria-label="Help"
-            className="flex h-7 w-7 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100"
-          >
-            <HelpCircle className="h-4 w-4" />
-          </button>
-          <button
-            type="button"
-            aria-label="Notifications"
-            className="relative flex h-7 w-7 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100"
-          >
-            <Bell className="h-4 w-4" />
-            <span className="absolute right-0.5 top-0.5 flex h-3.5 min-w-[14px] items-center justify-center rounded-full bg-[#0265dc] px-0.5 text-[9px] font-bold leading-none text-white">
+          <ActionButton isQuiet aria-label="Launch AI Assistant">
+            {/* Adobe AI Assistant — 4-pointed sparkle matching the real AJO icon */}
+            <svg viewBox="0 0 20 20" width="18" height="18" fill="currentColor" aria-hidden="true">
+              <path d="M10 2c-.3 1.8-1.2 3.5-2.5 4.8C6.2 8.1 4.5 9 2 9.5c2.5.5 4.2 1.5 5.5 2.8C8.8 13.5 9.7 15.2 10 17c.3-1.8 1.2-3.5 2.5-4.8 1.3-1.3 3-2.2 5.5-2.7-2.5-.5-4.2-1.5-5.5-2.8C11.2 5.5 10.3 3.8 10 2z"/>
+            </svg>
+          </ActionButton>
+          <ActionButton isQuiet aria-label="Help">
+            <SpectrumHelp />
+          </ActionButton>
+          <div className="relative">
+            <ActionButton isQuiet aria-label="Notifications">
+              <SpectrumBell />
+            </ActionButton>
+            <span className="pointer-events-none absolute right-0.5 top-0.5 flex h-3.5 min-w-[14px] items-center justify-center rounded-full bg-[#0265dc] px-0.5 text-[9px] font-bold leading-none text-white">
               9+
             </span>
-          </button>
-          <button
-            type="button"
-            aria-label="App switcher"
-            className="flex h-7 w-7 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100"
-          >
-            <Grid3x3 className="h-4 w-4" />
-          </button>
+          </div>
+          <ActionButton isQuiet aria-label="App switcher">
+            <SpectrumApps />
+          </ActionButton>
           <button
             type="button"
             aria-label="Profile"
@@ -1028,7 +947,7 @@ export default function PlaybooksDashboard() {
                   title={group.title}
                 >
                   {!isSidebarCollapsed && <span>{group.title}</span>}
-                  {group.collapsible && <ChevronDown className="h-3 w-3 text-slate-400" aria-hidden="true" />}
+                  {group.collapsible && <SpectrumChevronDown size="XXS" UNSAFE_className="text-slate-400" aria-hidden />}
                 </div>
                 <div className="space-y-0.5">
                   {group.items.map((item) => {
@@ -1310,7 +1229,7 @@ export default function PlaybooksDashboard() {
                         const roi = uc.roi_result;
                         const roiVal = roi?.estimated_roi;
                         const conf = roi?.confidence_score ?? 0;
-                        const confTone = confidenceColor(conf);
+                        const confVariant = confidenceBadgeVariant(conf);
                         const isSelected = selectedUseCaseIds.has(uc.use_case_id);
                         const selectedCellClass = isSelected ? "bg-blue-50 border-y border-blue-300" : "";
                         const leftEdgeClass = isSelected ? "border-l border-blue-300" : "";
@@ -1378,12 +1297,7 @@ export default function PlaybooksDashboard() {
                             </td>
                             <td className={`px-4 py-3 text-center ${selectedCellClass} ${rightEdgeClass}`}>
                               {roiVal != null ? (
-                                <span
-                                  className={`inline-flex w-[88px] items-center justify-start gap-1.5 rounded-full border px-2 py-1 text-[12px] ${confTone.pill}`}
-                                >
-                                  <span className={`h-2 w-2 rounded-full ${confTone.dot}`} />
-                                  {confidenceLabel(conf)}
-                                </span>
+                                <Badge variant={confVariant}>{confidenceLabel(conf)}</Badge>
                               ) : (
                                 <span className="text-slate-500">—</span>
                               )}
@@ -1433,125 +1347,114 @@ export default function PlaybooksDashboard() {
         </div>
       )}
 
-      {/* ROI Modal */}
-      <Modal
-        open={!!modalUseCase}
-        onClose={() => setModalUseCase(null)}
-        title={formatDisplayValue(modalUseCase?.use_case_title ?? "Use case")}
-        footer={
-          modalUseCase ? (
-            <>
-              <button
-                className="rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0265dc]"
-                onClick={() => {}}
-              >
-                View Full Details
-              </button>
+      {/* ROI Dialog */}
+      <DialogContainer onDismiss={() => setModalUseCase(null)}>
+        {modalUseCase && (
+          <Dialog size="XL">
+            <Heading>{formatDisplayValue(modalUseCase.use_case_title ?? "Use case")}</Heading>
+            <Header>Use Case Details</Header>
+            <Divider />
+            <Content>
+              {!modalUseCase.roi_result ? (
+                <div className="text-sm text-slate-600">No ROI result available for this use case.</div>
+              ) : (
+                <>
+                  <RoiModule roi={modalUseCase.roi_result} />
 
-              <button
-                className="rounded-md px-4 py-2 text-sm font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0265dc]"
-                style={{ background: VIOLET.accent }}
-                onClick={() => {}}
-              >
-                Activate
-              </button>
-            </>
-          ) : undefined
-        }
-      >
-        {!modalUseCase?.roi_result ? (
-          <div className="text-sm text-slate-600">No ROI result available for this use case.</div>
-        ) : (
-          <>
-            <RoiModule roi={modalUseCase.roi_result} />
+                  <div className="mt-7 border-t border-slate-200 pt-6">
+                    <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                      <div className="rounded-md border border-slate-200 p-4">
+                        <div className="text-sm font-semibold text-slate-900">What</div>
+                        {modalUseCase.what_to_show?.message ? (
+                          <div className="mt-2 text-sm text-slate-600" title={modalUseCase.what_to_show.message}>
+                            <div className="line-clamp-3">{modalUseCase.what_to_show.message}</div>
+                          </div>
+                        ) : (
+                          <div className="mt-2 text-sm text-slate-600">—</div>
+                        )}
+                        {modalUseCase.what_to_show?.explanation && (
+                          <div className="mt-3 border-t border-slate-100 pt-3 text-xs text-slate-500" title={modalUseCase.what_to_show.explanation}>
+                            <div className="line-clamp-3">{modalUseCase.what_to_show.explanation}</div>
+                          </div>
+                        )}
+                      </div>
 
-            <div className="mt-7 border-t border-slate-200 pt-6">
-              <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-              <div className="rounded-md border border-slate-200 p-4">
-                <div className="text-sm font-semibold text-slate-900">What</div>
-                {modalUseCase.what_to_show?.message ? (
-                  <div className="mt-2 text-sm text-slate-600" title={modalUseCase.what_to_show.message}>
-                    <div className="line-clamp-3">{modalUseCase.what_to_show.message}</div>
-                  </div>
-                ) : (
-                  <div className="mt-2 text-sm text-slate-600">—</div>
-                )}
-                {modalUseCase.what_to_show?.explanation && (
-                  <div className="mt-3 border-t border-slate-100 pt-3 text-xs text-slate-500" title={modalUseCase.what_to_show.explanation}>
-                    <div className="line-clamp-3">{modalUseCase.what_to_show.explanation}</div>
-                  </div>
-                )}
-              </div>
+                      <div className="rounded-md border border-slate-200 p-4">
+                        <div className="text-sm font-semibold text-slate-900">Where / When</div>
+                        <div className="mt-2 space-y-1.5 text-sm text-slate-700">
+                          <div>
+                            <span className="text-slate-500">Channel:</span>{" "}
+                            <span title={formatDisplayValue(modalUseCase.where_to_show?.channel)}>
+                              {formatDisplayValue(modalUseCase.where_to_show?.channel)}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-slate-500">Surface:</span>{" "}
+                            <span title={formatDisplayValue(modalUseCase.where_to_show?.surface)}>
+                              {formatDisplayValue(modalUseCase.where_to_show?.surface)}
+                            </span>
+                          </div>
+                          <div className="mt-2">
+                            <span className="text-slate-500">Trigger:</span>{" "}
+                            <span title={formatDisplayValue(modalUseCase.when_to_show?.trigger)}>
+                              {formatDisplayValue(modalUseCase.when_to_show?.trigger)}
+                            </span>
+                          </div>
+                          <div>
+                            <span className="text-slate-500">Frequency:</span>{" "}
+                            <span title={formatDisplayValue(modalUseCase.when_to_show?.frequency)}>
+                              {formatDisplayValue(modalUseCase.when_to_show?.frequency)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
 
-              <div className="rounded-md border border-slate-200 p-4">
-                <div className="text-sm font-semibold text-slate-900">Where / When</div>
-                <div className="mt-2 space-y-1.5 text-sm text-slate-700">
-                  <div>
-                    <span className="text-slate-500">Channel:</span>{" "}
-                    <span title={formatDisplayValue(modalUseCase.where_to_show?.channel)}>
-                      {formatDisplayValue(modalUseCase.where_to_show?.channel)}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500">Surface:</span>{" "}
-                    <span title={formatDisplayValue(modalUseCase.where_to_show?.surface)}>
-                      {formatDisplayValue(modalUseCase.where_to_show?.surface)}
-                    </span>
-                  </div>
-                  <div className="mt-2">
-                    <span className="text-slate-500">Trigger:</span>{" "}
-                    <span title={formatDisplayValue(modalUseCase.when_to_show?.trigger)}>
-                      {formatDisplayValue(modalUseCase.when_to_show?.trigger)}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="text-slate-500">Frequency:</span>{" "}
-                    <span title={formatDisplayValue(modalUseCase.when_to_show?.frequency)}>
-                      {formatDisplayValue(modalUseCase.when_to_show?.frequency)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-md border border-slate-200 p-4 lg:col-span-2">
-                <div className="text-sm font-semibold text-slate-900">Hypothesis / Targeting</div>
-                <div className="mt-2 text-sm text-slate-600" title={modalUseCase.hypothesis ?? "—"}>
-                  <div className={isHypExpanded ? "" : "line-clamp-2"}>{modalUseCase.hypothesis ?? "—"}</div>
-                </div>
-                {(modalUseCase.hypothesis?.length ?? 0) > 180 && (
-                  <button
-                    type="button"
-                    className="mt-2 text-xs font-semibold text-slate-500 hover:text-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500"
-                    onClick={() => setIsHypExpanded((prev) => !prev)}
-                  >
-                    {isHypExpanded ? "Show less" : "Read more"}
-                  </button>
-                )}
-                {modalUseCase.target_criteria && (
-                  <div
-                    className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3 font-mono text-xs text-slate-700"
-                    title={modalUseCase.target_criteria}
-                  >
-                    <div className={`whitespace-pre-wrap break-words ${isCriteriaExpanded ? "" : "line-clamp-2"}`}>
-                      {modalUseCase.target_criteria}
+                      <div className="rounded-md border border-slate-200 p-4 lg:col-span-2">
+                        <div className="text-sm font-semibold text-slate-900">Hypothesis / Targeting</div>
+                        <div className="mt-2 text-sm text-slate-600" title={modalUseCase.hypothesis ?? "—"}>
+                          <div className={isHypExpanded ? "" : "line-clamp-2"}>{modalUseCase.hypothesis ?? "—"}</div>
+                        </div>
+                        {(modalUseCase.hypothesis?.length ?? 0) > 180 && (
+                          <button
+                            type="button"
+                            className="mt-2 text-xs font-semibold text-slate-500 hover:text-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500"
+                            onClick={() => setIsHypExpanded((prev) => !prev)}
+                          >
+                            {isHypExpanded ? "Show less" : "Read more"}
+                          </button>
+                        )}
+                        {modalUseCase.target_criteria && (
+                          <div
+                            className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3 font-mono text-xs text-slate-700"
+                            title={modalUseCase.target_criteria}
+                          >
+                            <div className={`whitespace-pre-wrap break-words ${isCriteriaExpanded ? "" : "line-clamp-2"}`}>
+                              {modalUseCase.target_criteria}
+                            </div>
+                            {modalUseCase.target_criteria.length > 180 && (
+                              <button
+                                type="button"
+                                className="mt-2 text-xs font-semibold text-slate-500 hover:text-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500"
+                                onClick={() => setIsCriteriaExpanded((prev) => !prev)}
+                              >
+                                {isCriteriaExpanded ? "Show less" : "Read more"}
+                              </button>
+                            )}
+                          </div>
+                        )}
+                      </div>
                     </div>
-                    {modalUseCase.target_criteria.length > 180 && (
-                      <button
-                        type="button"
-                        className="mt-2 text-xs font-semibold text-slate-500 hover:text-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500"
-                        onClick={() => setIsCriteriaExpanded((prev) => !prev)}
-                      >
-                        {isCriteriaExpanded ? "Show less" : "Read more"}
-                      </button>
-                    )}
                   </div>
-                )}
-              </div>
-            </div>
-            </div>
-          </>
+                </>
+              )}
+            </Content>
+            <ButtonGroup>
+              <Button variant="secondary" onPress={() => {}}>View Full Details</Button>
+              <Button variant="accent" onPress={() => {}}>Activate</Button>
+            </ButtonGroup>
+          </Dialog>
         )}
-      </Modal>
+      </DialogContainer>
     </div>
   );
 }
