@@ -1068,7 +1068,7 @@ export default function PlaybooksDashboard() {
             <section key={selectedSegmentKey} className="segment-swap-enter space-y-4">
               {isSegmentSwitching ? (
                 <>
-                  <div className="min-h-[260px] rounded-md border border-slate-200 bg-white p-4">
+                  <div className="rounded-md border border-slate-200 bg-white p-4">
                     <div className="skeleton-line h-6 w-1/2 rounded" />
                     <div className="mt-3 grid grid-cols-2 gap-2 xl:grid-cols-4">
                       <div className="skeleton-line h-14 rounded-md" />
@@ -1082,7 +1082,7 @@ export default function PlaybooksDashboard() {
                     </div>
                   </div>
 
-                  <div className="min-h-[420px] rounded-md border border-slate-200 bg-white p-4">
+                  <div className="rounded-md border border-slate-200 bg-white p-4">
                     <div className="flex items-center justify-between">
                       <div className="skeleton-line h-5 w-28 rounded" />
                       <div className="skeleton-line h-4 w-14 rounded" />
@@ -1098,7 +1098,7 @@ export default function PlaybooksDashboard() {
               ) : (
                 <>
               {/* Segment summary */}
-              <div className="min-h-[260px] rounded-md border border-slate-200 bg-white p-4">
+              <div className="rounded-md border border-slate-200 bg-white p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <TruncateText text={selectedSegment.segment_name} as="div" className="text-base font-bold text-slate-900" />
@@ -1143,7 +1143,7 @@ export default function PlaybooksDashboard() {
               </div>
 
               {/* Use cases table */}
-              <div className="min-h-[420px] rounded-md border border-slate-200 bg-white">
+              <div className="rounded-md border border-slate-200 bg-white">
                 <div className="flex items-center justify-between px-4 py-3">
                   <div className="text-sm font-semibold text-slate-500">Use cases</div>
                   <div className="text-xs text-slate-500">{useCases.length} total</div>
