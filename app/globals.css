@@ -1,28 +1,44 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Spectrum-aligned design tokens */
+  --color-accent:        #0265dc;
+  --color-accent-tint:   #eaf2ff;
+  --color-text-primary:  rgb(41, 41, 41);
+  --color-text-secondary: #64748b; /* slate-500 */
+  --color-border:        #e2e8f0; /* slate-200 */
+  --color-surface:       #ffffff;
+  --color-surface-subtle: #f8fafc; /* slate-50 */
+  --color-surface-muted:  #f1f5f9; /* slate-100 */
+
+  --radius-sm: 4px;   /* cards, buttons, modal — tighter Spectrum corner */
+  --radius-md: 6px;
+
+  --font-sans: "adobe-clean", -apple-system, "Segoe UI", system-ui, sans-serif;
+  --font-size-body: 13px;
+  --font-size-label: 11px;
+  --font-size-heading-sm: 15px;
+  --font-size-heading-md: 18px;
+
+  --icon-size: 20px;
+  --icon-size-sm: 18px;
+
+  --background: var(--color-surface);
+  --foreground: var(--color-text-primary);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-body);
 }
 
 @keyframes segmentSwapIn {
