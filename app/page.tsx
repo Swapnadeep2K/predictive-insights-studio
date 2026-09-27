@@ -1,507 +1,18 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Menu, LayoutGrid, Target, ChevronDown } from "lucide-react";
-import SpectrumHelp from "@spectrum-icons/workflow/Help";
-import SpectrumBell from "@spectrum-icons/workflow/Bell";
-import SpectrumApps from "@spectrum-icons/workflow/Apps";
-import SpectrumMore from "@spectrum-icons/workflow/More";
-import SpectrumChevronDown from "@spectrum-icons/workflow/ChevronDown";
-import SpectrumHome from "@spectrum-icons/workflow/Home";
-import SpectrumCampaign from "@spectrum-icons/workflow/Campaign";
-import SpectrumJourney from "@spectrum-icons/workflow/Journey";
-import SpectrumReport from "@spectrum-icons/workflow/Report";
-import SpectrumAsset from "@spectrum-icons/workflow/Asset";
-import SpectrumFileTemplate from "@spectrum-icons/workflow/FileTemplate";
-import SpectrumDocumentFragment from "@spectrum-icons/workflow/DocumentFragment";
-import SpectrumForm from "@spectrum-icons/workflow/Form";
-import SpectrumHomepage from "@spectrum-icons/workflow/Homepage";
-import SpectrumGlobe from "@spectrum-icons/workflow/Globe";
-import SpectrumPlatformDataMapping from "@spectrum-icons/workflow/PlatformDataMapping";
-import SpectrumSQLQuery from "@spectrum-icons/workflow/SQLQuery";
-import SpectrumMonitoring from "@spectrum-icons/workflow/Monitoring";
-import SpectrumUserGroup from "@spectrum-icons/workflow/UserGroup";
-import SpectrumSubscribe from "@spectrum-icons/workflow/Subscribe";
-import SpectrumRealTimeCustomerProfile from "@spectrum-icons/workflow/RealTimeCustomerProfile";
-import SpectrumIdentityService from "@spectrum-icons/workflow/IdentityService";
-import SpectrumCalculator from "@spectrum-icons/workflow/Calculator";
-import SpectrumShield from "@spectrum-icons/workflow/Shield";
-import SpectrumSettings from "@spectrum-icons/workflow/Settings";
-import SpectrumBranch1 from "@spectrum-icons/workflow/Branch1";
-import SpectrumAlert from "@spectrum-icons/workflow/Alert";
-import SpectrumSandbox from "@spectrum-icons/workflow/Sandbox";
-import SpectrumChannel from "@spectrum-icons/workflow/Channel";
-import SpectrumViewAllTags from "@spectrum-icons/workflow/ViewAllTags";
-import SpectrumOffer from "@spectrum-icons/workflow/Offer";
-import SpectrumCollection from "@spectrum-icons/workflow/Collection";
-import SpectrumData from "@spectrum-icons/workflow/Data";
-import SpectrumImport from "@spectrum-icons/workflow/Import";
-import SpectrumExport from "@spectrum-icons/workflow/Export";
-import SpectrumLockClosed from "@spectrum-icons/workflow/LockClosed";
-import SpectrumDataCheck from "@spectrum-icons/workflow/DataCheck";
-import SpectrumDataRefresh from "@spectrum-icons/workflow/DataRefresh";
-import { ActionButton, Button } from "@react-spectrum/button";
-import { Badge } from "@react-spectrum/badge";
-import { DialogContainer, Dialog } from "@react-spectrum/dialog";
-import { Heading, Header, Divider, Content, ButtonGroup, Footer } from "@adobe/react-spectrum";
-import SpectrumSearch from "@spectrum-icons/workflow/Search";
-import SpectrumDocument from "@spectrum-icons/workflow/Document";
+import { VIOLET } from "./lib/constants";
+import { safeNum, churnRiskLabel, formatDisplayValue } from "./lib/helpers";
+import type { SegmentsPayload, UseCase, UseCaseSortField, SortDirection } from "./types";
+import Sidebar from "./components/Sidebar";
+import AppHeader from "./components/AppHeader";
+import SegmentList from "./components/SegmentList";
+import SegmentSummary from "./components/SegmentSummary";
+import UseCasesTable from "./components/UseCasesTable";
+import UseCaseModal from "./components/UseCaseModal";
+import TruncateText from "./components/ui/TruncateText";
+import SelectDropdown from "./components/ui/SelectDropdown";
 
-// Wraps a Spectrum workflow icon so it accepts a className prop (matches lucide's API)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function si(Icon: React.ComponentType<any>) {
-  return function SpectrumIconWrapper({ className }: { className?: string }) {
-    return <Icon UNSAFE_className={className} size="S" aria-hidden />;
-  };
-}
-
-// -----------------------------
-// Types (adapted to the JSON)
-// -----------------------------
-type RoiResult = {
-  estimated_roi: number;
-  confidence_score: number;
-  expected_conversion_lift?: number;
-  predicted_segment_metrics?: Record<string, number>;
-};
-
-type UseCase = {
-  use_case_id: string;
-  use_case_title: string;
-  use_case_type: string; // upsell | retention | etc.
-  what_to_show?: {
-    type?: string;
-    message?: string;
-    explanation?: string;
-  };
-  where_to_show?: {
-    channel?: string;
-    surface?: string;
-    explanation?: string;
-  };
-  when_to_show?: {
-    trigger?: string;
-    frequency?: string;
-    duration?: string;
-    explanation?: string;
-  };
-  hypothesis?: string;
-  target_criteria?: string;
-  roi_result?: RoiResult;
-};
-
-type SegmentAttributes = Record<string, string>;
-
-type Segment = {
-  segment_name: string;
-  segment_description?: string;
-  segment_attributes?: SegmentAttributes;
-  use_cases?: UseCase[];
-};
-
-type SegmentsPayload = Record<string, Segment>;
-
-type SidebarItem = {
-  label: string;
-  icon: React.ElementType;
-  clickable?: boolean;
-  active?: boolean;
-};
-
-type SidebarGroup = {
-  title: string;
-  items: SidebarItem[];
-  collapsible?: boolean;
-};
-
-type TruncateTextProps = {
-  text: string;
-  className?: string;
-  as?: "span" | "div";
-};
-
-type UseCaseSortField = "name" | "type" | "channel" | "trigger" | "roi" | "confidence";
-type SortDirection = "asc" | "desc";
-
-// -----------------------------
-// Helpers
-// -----------------------------
-function confidenceLabel(score: number): "High" | "Medium" | "Low" {
-  if (score >= 0.98) return "High";
-  if (score >= 0.95) return "Medium";
-  return "Low";
-}
-
-function confidenceBadgeVariant(score: number): "positive" | "yellow" | "negative" {
-  if (score >= 0.98) return "positive";
-  if (score >= 0.95) return "yellow";
-  return "negative";
-}
-
-function churnRiskLabel(churnRate?: number) {
-  if (churnRate == null || Number.isNaN(churnRate))
-    return { text: "—", tone: "text-slate-600" };
-  if (churnRate <= 0.14)
-    return { text: `${(churnRate * 100).toFixed(1)}% (Low)`, tone: "text-emerald-700" };
-  if (churnRate >= 0.25)
-    return { text: `${(churnRate * 100).toFixed(1)}% (High)`, tone: "text-red-700" };
-  if (churnRate <= 0.24)
-    return { text: `${(churnRate * 100).toFixed(1)}% (Med)`, tone: "text-amber-700" };
-  return { text: `${(churnRate * 100).toFixed(1)}% (Med)`, tone: "text-amber-700" };
-}
-
-function safeNum(v: unknown): number | undefined {
-  const n = Number(v);
-  return Number.isFinite(n) ? n : undefined;
-}
-
-function TruncateText({ text, className = "", as = "span" }: TruncateTextProps) {
-  const Component = as;
-  return (
-    <Component className={`truncate ${className}`.trim()} title={text}>
-      {text}
-    </Component>
-  );
-}
-
-function formatDisplayValue(value?: string) {
-  if (!value) return "—";
-  const slashNormalized = value
-    .replace(/\s*\/+\s*/g, " • ")
-    .replace(/\s+/g, " ")
-    .trim();
-
-  if (["NA", "N/A"].includes(slashNormalized.toUpperCase())) return "-";
-
-  // Keep sentence-like text as-is.
-  if (/[.!?]/.test(slashNormalized)) return slashNormalized;
-
-  // Title-case compact labels/tokens and each bullet-separated segment.
-  return slashNormalized
-    .split(" • ")
-    .map((segment) =>
-      segment
-        .replace(/[_-]+/g, " ")
-        .split(" ")
-        .filter(Boolean)
-        .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-        .join(" ")
-    )
-    .join(" • ");
-}
-
-function SortArrow({ active, direction }: { active: boolean; direction: SortDirection }) {
-  if (!active) return null;
-
-  return (
-    <svg
-      className={`h-3 w-3 shrink-0 text-slate-700 ${direction === "asc" ? "rotate-180" : ""}`}
-      viewBox="0 0 10 11"
-      focusable="false"
-      aria-hidden="true"
-      role="img"
-      fill="currentColor"
-    >
-      <path d="M7.99 6.01a1 1 0 0 0-1.707-.707L5 6.586V1a1 1 0 0 0-2 0v5.586L1.717 5.303A1 1 0 1 0 .303 6.717l2.99 2.98a1 1 0 0 0 1.414 0l2.99-2.98a.997.997 0 0 0 .293-.707z" />
-    </svg>
-  );
-}
-
-function FilterDropdown({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  options: string[];
-  onChange: (next: string) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const [activeIndex, setActiveIndex] = useState<number>(-1);
-  const rootRef = useRef<HTMLDivElement | null>(null);
-  const listRef = useRef<HTMLUListElement | null>(null);
-  const buttonRef = useRef<HTMLButtonElement | null>(null);
-  const listboxId = React.useId();
-
-  const currentIndex = options.indexOf(value);
-
-  useEffect(() => {
-    if (!open) return;
-    setActiveIndex(currentIndex >= 0 ? currentIndex : 0);
-    const onDocClick = (event: MouseEvent) => {
-      if (!rootRef.current) return;
-      if (!rootRef.current.contains(event.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", onDocClick);
-    return () => document.removeEventListener("mousedown", onDocClick);
-  }, [open, currentIndex]);
-
-  useEffect(() => {
-    if (!open || !listRef.current) return;
-    const items = listRef.current.querySelectorAll<HTMLElement>("[role='option']");
-    items[activeIndex]?.scrollIntoView({ block: "nearest" });
-  }, [activeIndex, open]);
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!open) {
-      if (e.key === "Enter" || e.key === " " || e.key === "ArrowDown") {
-        e.preventDefault();
-        setOpen(true);
-      }
-      return;
-    }
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setActiveIndex((i) => Math.min(i + 1, options.length - 1));
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setActiveIndex((i) => Math.max(i - 1, 0));
-    } else if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      if (activeIndex >= 0) { onChange(options[activeIndex]); setOpen(false); }
-    } else if (e.key === "Escape" || e.key === "Tab") {
-      setOpen(false);
-      buttonRef.current?.focus();
-    }
-  };
-
-  const activeOptionId = open && activeIndex >= 0 ? `${listboxId}-opt-${activeIndex}` : undefined;
-
-  return (
-    <div
-      ref={rootRef}
-      className="group relative flex h-10 min-w-[220px] items-center rounded-md border border-slate-200 bg-white px-3 text-sm text-slate-700 transition-colors hover:border-slate-300"
-      onKeyDown={handleKeyDown}
-    >
-      <button
-        ref={buttonRef}
-        type="button"
-        className="flex w-full items-center justify-between gap-2 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0265dc] rounded-sm"
-        onClick={() => setOpen((prev) => !prev)}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-controls={listboxId}
-        aria-activedescendant={activeOptionId}
-      >
-        <span className="flex items-center gap-2">
-          <span className="min-w-[62px] text-slate-500">{label}:</span>
-          <span className="max-w-[120px] truncate font-medium text-slate-800">{value}</span>
-        </span>
-        <SpectrumChevronDown size="XS" UNSAFE_className="text-slate-500" aria-hidden />
-      </button>
-
-      {open && (
-        <div className="absolute left-0 top-full z-30 mt-1 w-full overflow-hidden rounded-md border border-slate-200 bg-white">
-          <ul
-            ref={listRef}
-            id={listboxId}
-            role="listbox"
-            aria-label={label}
-            className="max-h-56 overflow-y-auto py-1"
-          >
-            {options.map((option, i) => (
-              <li
-                key={option}
-                id={`${listboxId}-opt-${i}`}
-                role="option"
-                aria-selected={option === value}
-                className={`cursor-pointer px-3 py-2 text-left text-sm ${
-                  i === activeIndex ? "bg-slate-100" : ""
-                } ${option === value ? "font-semibold text-[#0265dc]" : "text-slate-700"}`}
-                onMouseEnter={() => setActiveIndex(i)}
-                onClick={() => { onChange(option); setOpen(false); }}
-              >
-                {option}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Theme tokens
-const VIOLET = {
-  accent: "#0265dc",
-  tint: "#eaf2ff",
-};
-
-const SIDEBAR_HOME: SidebarItem = { label: "Home", icon: si(SpectrumHome) };
-
-const SIDEBAR_GROUPS: SidebarGroup[] = [
-  {
-    title: "Journey Management",
-    collapsible: true,
-    items: [
-      { label: "Campaigns", icon: si(SpectrumCampaign) },
-      { label: "Journeys", icon: si(SpectrumJourney) },
-      { label: "Reports", icon: si(SpectrumReport) },
-    ],
-  },
-  {
-    title: "Use Case Playbooks",
-    collapsible: true,
-    items: [
-      { label: "Playbooks", icon: si(SpectrumOffer) },
-      { label: "Predictive Insights Studio", icon: LayoutGrid, clickable: true, active: true },
-    ],
-  },
-  {
-    title: "Decisioning",
-    collapsible: true,
-    items: [
-      { label: "Catalogs", icon: si(SpectrumCollection) },
-      { label: "Strategy setup", icon: Target },
-    ],
-  },
-  {
-    title: "Content Management",
-    collapsible: true,
-    items: [
-      { label: "Assets", icon: si(SpectrumAsset) },
-      { label: "Content templates", icon: si(SpectrumFileTemplate) },
-      { label: "Fragments", icon: si(SpectrumDocumentFragment) },
-      { label: "Forms", icon: si(SpectrumForm) },
-      { label: "Landing pages", icon: si(SpectrumHomepage) },
-      { label: "Translations", icon: si(SpectrumGlobe) },
-    ],
-  },
-  {
-    title: "Data Management",
-    collapsible: true,
-    items: [
-      { label: "Schemas", icon: si(SpectrumPlatformDataMapping) },
-      { label: "Datasets", icon: si(SpectrumData) },
-      { label: "Queries", icon: si(SpectrumSQLQuery) },
-      { label: "Monitoring", icon: si(SpectrumMonitoring) },
-    ],
-  },
-  {
-    title: "Connections",
-    collapsible: true,
-    items: [
-      { label: "Sources", icon: si(SpectrumImport) },
-      { label: "Destinations", icon: si(SpectrumExport) },
-    ],
-  },
-  {
-    title: "Customer",
-    collapsible: true,
-    items: [
-      { label: "Audiences", icon: si(SpectrumUserGroup) },
-      { label: "Subscription lists", icon: si(SpectrumSubscribe) },
-      { label: "Profiles", icon: si(SpectrumRealTimeCustomerProfile) },
-      { label: "Identities", icon: si(SpectrumIdentityService) },
-      { label: "Sample Size Calculator", icon: si(SpectrumCalculator) },
-    ],
-  },
-  {
-    title: "Privacy",
-    collapsible: true,
-    items: [
-      { label: "Policies", icon: si(SpectrumShield) },
-      { label: "Requests", icon: si(SpectrumLockClosed) },
-      { label: "Audits", icon: si(SpectrumDataCheck) },
-      { label: "Data Lifecycle", icon: si(SpectrumDataRefresh) },
-    ],
-  },
-  {
-    title: "Administration",
-    collapsible: true,
-    items: [
-      { label: "Configurations", icon: si(SpectrumSettings) },
-      { label: "Business rules", icon: si(SpectrumBranch1) },
-      { label: "Alerts", icon: si(SpectrumAlert) },
-      { label: "Sandboxes", icon: si(SpectrumSandbox) },
-      { label: "Channels", icon: si(SpectrumChannel) },
-      { label: "Tags", icon: si(SpectrumViewAllTags) },
-      { label: "License Usage", icon: si(SpectrumDocument) },
-    ],
-  },
-];
-
-// -----------------------------
-// Modal
-// -----------------------------
-// ROI Module
-// -----------------------------
-function RoiModule({ roi }: { roi: RoiResult }) {
-  const roiVal = roi?.estimated_roi ?? 0;
-  const conf = roi?.confidence_score ?? 0;
-  const lift = roi?.expected_conversion_lift;
-  const confTxt = confidenceLabel(conf);
-  const confVariant = confidenceBadgeVariant(conf);
-
-  const intervalMin = roiVal * 0.9;
-  const intervalMax = roiVal * 1.15;
-  const scaleMin = -5;
-  const scaleMax = 15;
-  const riskMax = 1;
-  const clampedRoi = Math.min(scaleMax, Math.max(scaleMin, roiVal));
-  const pos = (clampedRoi - scaleMin) / Math.max(1e-9, scaleMax - scaleMin);
-  const riskPos = (riskMax - scaleMin) / Math.max(1e-9, scaleMax - scaleMin);
-
-  return (
-    <div className="rounded-md border border-slate-200 p-5">
-      {/* Hero row: big ROI + confidence badge */}
-      <div className="flex items-center gap-4">
-        <div className="text-5xl font-bold tracking-tight" style={{ color: VIOLET.accent }}>
-          {roiVal.toFixed(2)}×
-        </div>
-        <div className="flex flex-col gap-1">
-          <Badge variant={confVariant}>{confTxt} Confidence</Badge>
-          <div className="text-xs text-slate-500">Estimated ROI</div>
-        </div>
-      </div>
-
-      {/* Key stats row */}
-      <div className="mt-5 grid grid-cols-3 gap-3">
-        {[
-          { label: "Confidence Score", value: conf.toFixed(2) },
-          { label: "Expected Lift", value: lift != null ? `+${(lift * 100).toFixed(1)}%` : "—" },
-          { label: "95% Interval", value: `${intervalMin.toFixed(2)}× – ${intervalMax.toFixed(2)}×` },
-        ].map((s) => (
-          <div key={s.label} className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2.5">
-            <div className="text-[11px] font-medium uppercase tracking-wide text-slate-500">{s.label}</div>
-            <div className="mt-1 text-sm font-semibold text-slate-900">{s.value}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* ROI scale */}
-      <div className="mt-5">
-        <div className="mb-2 flex items-center justify-between text-xs">
-          <span className="rounded bg-red-50 px-2 py-0.5 font-medium text-red-700">Loss Zone: −5× to 1×</span>
-          <span className="font-semibold text-slate-700">ROI: {roiVal.toFixed(2)}×</span>
-        </div>
-        <div className="relative h-3 rounded-full border border-slate-200 bg-white">
-          <div
-            className="h-full rounded-l-full bg-red-100/80"
-            style={{ width: `${Math.max(0, Math.min(1, riskPos)) * 100}%` }}
-            aria-hidden="true"
-          />
-          <div
-            className="absolute top-1/2 h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-sm"
-            style={{ left: `${pos * 100}%`, background: VIOLET.accent }}
-            title={`${roiVal.toFixed(2)}× ROI`}
-          />
-        </div>
-        <div className="relative mt-1.5 text-xs text-slate-400">
-          <span>{scaleMin}×</span>
-          <span className="absolute -translate-x-1/2" style={{ left: `${riskPos * 100}%` }}>1×</span>
-          <span className="float-right">{scaleMax}×</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// -----------------------------
-// Main Page
-// -----------------------------
 export default function PlaybooksDashboard() {
   // Option A: put JSON in /public/segments.json and set:
   // const DATA_URL = "/segments.json";
@@ -657,10 +168,6 @@ export default function PlaybooksDashboard() {
 
     return list;
   }, [filteredUseCases, sortDirection, sortField]);
-  const selectedUseCases = useMemo(
-    () => useCases.filter((uc) => selectedUseCaseIds.has(uc.use_case_id)),
-    [useCases, selectedUseCaseIds]
-  );
   const allUseCaseIds = useMemo(() => useCases.map((uc) => uc.use_case_id), [useCases]);
   const allSelected = allUseCaseIds.length > 0 && allUseCaseIds.every((id) => selectedUseCaseIds.has(id));
   const someSelected = allUseCaseIds.some((id) => selectedUseCaseIds.has(id)) && !allSelected;
@@ -773,7 +280,7 @@ export default function PlaybooksDashboard() {
     return (
       <div className="min-h-screen bg-slate-50 p-8 text-slate-700">
         <div className="max-w-3xl rounded-xl border border-slate-200 bg-white p-5">
-          <div className="text-lg font-semibold text-slate-900">Couldn’t load data</div>
+          <div className="text-lg font-semibold text-slate-900">Couldn&apos;t load data</div>
           <div className="mt-2 text-sm text-slate-600">{err}</div>
           <div className="mt-4 text-sm text-slate-600">
             Tip: put the JSON at <span className="font-mono">/public/segments.json</span> and set{" "}
@@ -798,190 +305,22 @@ export default function PlaybooksDashboard() {
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-slate-100">
       {/* Global header */}
-      <header className="flex h-11 items-center border-b border-slate-200 bg-white px-3 text-slate-700 md:px-4">
-        {/* Left zone */}
-        <div className="flex min-w-0 flex-1 items-center gap-2">
-          <button
-            type="button"
-            className="flex h-7 w-7 items-center justify-center rounded border border-slate-200 text-sm text-slate-600 hover:bg-slate-50"
-            aria-label="Open navigation"
-            onClick={() => setIsSidebarCollapsed((prev) => !prev)}
-          >
-            <Menu className="h-4 w-4" />
-          </button>
-          <div className="flex h-5 w-5 items-center justify-center rounded-sm text-[11px] font-bold text-slate-700">
-            A
-          </div>
-          <div className="truncate text-[13px] font-medium text-slate-800">Journey Optimizer <span className="text-slate-400 font-normal">(reference UI)</span></div>
-        </div>
-
-        {/* Center zone */}
-        <div className="flex flex-1 items-center justify-center">
-          <div className="flex h-8 w-full max-w-[430px] items-center gap-2 rounded-full border border-slate-300 bg-slate-50 px-3 text-xs text-slate-500">
-            <SpectrumSearch size="S" aria-hidden />
-            <span className="truncate">Search Experience Cloud (Ctrl+/)</span>
-          </div>
-        </div>
-
-        {/* Right zone */}
-        <div className="flex flex-1 items-center justify-end gap-1.5 text-xs">
-          {/* Org + sandbox — visible at xl; overflow menu below xl */}
-          <span className="hidden text-slate-600 xl:inline">Demo Org</span>
-          <div className="hidden items-center gap-1 xl:flex">
-            <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-700">Dev</span>
-            <span className="max-w-[160px] truncate text-slate-600">Demo Sandbox</span>
-          </div>
-          <div className="mx-1 hidden h-5 w-px bg-slate-200 xl:block" aria-hidden="true" />
-
-          {/* Overflow button — shown below xl */}
-          <div ref={headerOverflowRef} className="relative xl:hidden">
-            <button
-              type="button"
-              aria-label="More options"
-              aria-expanded={isHeaderOverflowOpen}
-              className="flex h-7 w-7 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100"
-              onClick={() => setIsHeaderOverflowOpen((prev) => !prev)}
-            >
-              <SpectrumMore size="S" aria-hidden />
-            </button>
-            {isHeaderOverflowOpen && (
-              <div
-                className="absolute right-0 top-full z-50 mt-1 w-48 rounded-md border border-slate-200 bg-white py-2 shadow-md"
-                onMouseLeave={() => setIsHeaderOverflowOpen(false)}
-              >
-                <div className="border-b border-slate-100 px-3 pb-2 text-[11px] font-semibold uppercase tracking-wide text-slate-400">Context</div>
-                <div className="px-3 pt-2 space-y-1.5">
-                  <div className="text-[13px] text-slate-700">Demo Org</div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px] font-semibold text-slate-700">Dev</span>
-                    <span className="text-[13px] text-slate-600">Demo Sandbox</span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-          <ActionButton isQuiet aria-label="Launch AI Assistant">
-            {/* Adobe AI Assistant — 4-pointed sparkle matching the real AJO icon */}
-            <svg viewBox="0 0 20 20" width="18" height="18" fill="currentColor" aria-hidden="true">
-              <path d="M10 2c-.3 1.8-1.2 3.5-2.5 4.8C6.2 8.1 4.5 9 2 9.5c2.5.5 4.2 1.5 5.5 2.8C8.8 13.5 9.7 15.2 10 17c.3-1.8 1.2-3.5 2.5-4.8 1.3-1.3 3-2.2 5.5-2.7-2.5-.5-4.2-1.5-5.5-2.8C11.2 5.5 10.3 3.8 10 2z"/>
-            </svg>
-          </ActionButton>
-          <ActionButton isQuiet aria-label="Help">
-            <SpectrumHelp />
-          </ActionButton>
-          <div className="relative">
-            <ActionButton isQuiet aria-label="Notifications">
-              <SpectrumBell />
-            </ActionButton>
-            <span className="pointer-events-none absolute right-0.5 top-0.5 flex h-3.5 min-w-[14px] items-center justify-center rounded-full bg-[#0265dc] px-0.5 text-[9px] font-bold leading-none text-white">
-              9+
-            </span>
-          </div>
-          <ActionButton isQuiet aria-label="App switcher">
-            <SpectrumApps />
-          </ActionButton>
-          <button
-            type="button"
-            aria-label="Profile"
-            className="flex h-7 w-7 items-center justify-center rounded-full bg-[#0265dc] text-[11px] font-bold text-white"
-          >
-            S
-          </button>
-        </div>
-      </header>
+      <AppHeader
+        isSidebarCollapsed={isSidebarCollapsed}
+        setIsSidebarCollapsed={setIsSidebarCollapsed}
+        isHeaderOverflowOpen={isHeaderOverflowOpen}
+        setIsHeaderOverflowOpen={setIsHeaderOverflowOpen}
+        headerOverflowRef={headerOverflowRef}
+      />
 
       <div className="flex min-h-0 flex-1">
         {/* Left navigation */}
-        <aside
-          onMouseEnter={(e) => e.currentTarget.classList.add("sidebar-scroll-active")}
-          onMouseLeave={(e) => e.currentTarget.classList.remove("sidebar-scroll-active")}
-          className={`sidebar-scroll hidden h-full overflow-y-auto overscroll-contain border-r border-slate-200 bg-white transition-all duration-200 md:block ${
-            isSidebarCollapsed ? "w-14" : "w-60"
-          }`}
-        >
-          <nav className={`space-y-5 py-3 ${isSidebarCollapsed ? "px-1.5" : "px-3"}`}>
-            <div
-              className={`rounded-md py-1.5 text-[13px] text-slate-700 ${
-                isSidebarCollapsed ? "flex justify-center px-0" : "flex items-center gap-2 px-2"
-              }`}
-              title={SIDEBAR_HOME.label}
-            >
-              <SIDEBAR_HOME.icon className="h-4 w-4 shrink-0 text-slate-500" />
-              {!isSidebarCollapsed && <span>{SIDEBAR_HOME.label}</span>}
-            </div>
-
-            {SIDEBAR_GROUPS.map((group) => {
-              const isSectionCollapsed = collapsedSections.has(group.title);
-              return (
-              <section key={group.title} className="space-y-1.5">
-                {group.collapsible ? (
-                  <button
-                    type="button"
-                    onClick={() => !isSidebarCollapsed && toggleSection(group.title)}
-                    className={`flex w-full items-center gap-3 text-[13px] font-medium text-slate-400 hover:text-slate-600 ${
-                      isSidebarCollapsed ? "justify-center px-0" : "px-2"
-                    }`}
-                    title={group.title}
-                    aria-expanded={!isSectionCollapsed}
-                  >
-                    {!isSidebarCollapsed && (
-                      <ChevronDown
-                        className="h-4 w-4 shrink-0 text-slate-400 transition-transform duration-150"
-                        style={{ transform: isSectionCollapsed ? "rotate(-90deg)" : "rotate(0deg)" }}
-                        aria-hidden
-                      />
-                    )}
-                    {!isSidebarCollapsed && <span>{group.title}</span>}
-                  </button>
-                ) : (
-                  <div
-                    className={`flex items-center text-[13px] font-medium text-slate-400 ${
-                      isSidebarCollapsed ? "justify-center px-0" : "px-2"
-                    }`}
-                    title={group.title}
-                  >
-                    {!isSidebarCollapsed && <span>{group.title}</span>}
-                  </div>
-                )}
-                {!isSectionCollapsed && <div className="space-y-0.5">
-                  {group.items.map((item) => {
-                    if (item.clickable) {
-                      return (
-                        <button
-                          key={item.label}
-                          type="button"
-                          title={item.label}
-                          className={`w-full rounded-md py-1.5 text-left text-[13px] text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0265dc] ${
-                            isSidebarCollapsed ? "flex justify-center px-0" : "flex items-center gap-2 px-2"
-                          }`}
-                          style={item.active ? { background: VIOLET.tint, outline: `1px solid ${VIOLET.accent}` } : undefined}
-                        >
-                          <item.icon className="h-4 w-4 shrink-0 text-slate-600" />
-                          {!isSidebarCollapsed && <span className="font-semibold">{item.label}</span>}
-                        </button>
-                      );
-                    }
-
-                    return (
-                      <div
-                        key={item.label}
-                        title={item.label}
-                        className={`cursor-default rounded-md py-1.5 text-[13px] text-slate-700 ${
-                          isSidebarCollapsed ? "flex justify-center px-0" : "flex items-center gap-2 px-2"
-                        }`}
-                      >
-                        <item.icon className="h-4 w-4 shrink-0 text-slate-500" />
-                        {!isSidebarCollapsed && <span>{item.label}</span>}
-                      </div>
-                    );
-                  })}
-                </div>}
-              </section>
-              );
-            })}
-
-          </nav>
-        </aside>
+        <Sidebar
+          isSidebarCollapsed={isSidebarCollapsed}
+          setIsSidebarCollapsed={setIsSidebarCollapsed}
+          collapsedSections={collapsedSections}
+          toggleSection={toggleSection}
+        />
 
         {/* Main content */}
         <main className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-5">
@@ -1021,43 +360,25 @@ export default function PlaybooksDashboard() {
             </div>
 
             <div className="flex flex-wrap justify-start gap-2 lg:justify-end">
-              <FilterDropdown label="Channel" value={channelFilter} options={channelOptions} onChange={setChannelFilter} />
-              <FilterDropdown label="Type" value={typeFilter} options={typeOptions} onChange={setTypeFilter} />
+              <SelectDropdown label="Channel" value={channelFilter} options={channelOptions} onChange={setChannelFilter} />
+              <SelectDropdown label="Type" value={typeFilter} options={typeOptions} onChange={setTypeFilter} />
             </div>
           </div>
 
           {/* Content grid (same wireframe; modal handles details) */}
           <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[320px_1fr]">
             {/* Segments list */}
-            <section className="rounded-md border border-slate-200 bg-white p-4">
-              <div className="text-sm font-semibold text-slate-600">Segments</div>
-              <div className="mt-2 space-y-1.5">
-                {segmentKeys.map((k) => {
-                  const seg = data[k];
-                  const selected = k === selectedSegmentKey;
-                  return (
-                    <button
-                      key={k}
-                      onClick={() => {
-                        setSelectedSegmentKey(k);
-                        setIsDescExpanded(false);
-                        setSelectedUseCaseIds(new Set());
-                        setModalUseCase(null);
-                        setChannelFilter("All");
-                        setTypeFilter("All");
-                      }}
-                      className={`w-full rounded-md py-2 text-left text-sm transition-colors ${
-                        selected
-                          ? "border-l-2 border-[#0265dc] bg-[#eaf2ff] pl-2 pr-3 font-semibold text-slate-900"
-                          : "pl-3 pr-3 text-slate-700 hover:bg-slate-50"
-                      }`}
-                    >
-                      {seg.segment_name}
-                    </button>
-                  );
-                })}
-              </div>
-            </section>
+            <SegmentList
+              segments={data}
+              segmentKeys={segmentKeys}
+              selectedSegmentKey={selectedSegmentKey}
+              setSelectedSegmentKey={setSelectedSegmentKey}
+              setIsDescExpanded={setIsDescExpanded}
+              setSelectedUseCaseIds={setSelectedUseCaseIds}
+              setModalUseCase={setModalUseCase}
+              setChannelFilter={setChannelFilter}
+              setTypeFilter={setTypeFilter}
+            />
 
             {/* Right side: segment header + table */}
             <section key={selectedSegmentKey} className="segment-swap-enter space-y-4">
@@ -1092,222 +413,38 @@ export default function PlaybooksDashboard() {
                 </>
               ) : (
                 <>
-              {/* Segment summary */}
-              <div className="rounded-md border border-slate-200 bg-white p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <TruncateText text={selectedSegment.segment_name} as="div" className="text-base font-bold text-slate-900" />
-                  </div>
+                  {/* Segment summary */}
+                  <SegmentSummary
+                    selectedSegment={selectedSegment}
+                    descRef={descRef}
+                    descText={descText}
+                    isDescExpanded={isDescExpanded}
+                    setIsDescExpanded={setIsDescExpanded}
+                    hasDescOverflow={hasDescOverflow}
+                    churnBadgeTone={churnBadge.tone}
+                    churnBadgeText={churnBadge.text}
+                    segmentSize={segmentSize}
+                    avgTenure={avgTenure}
+                    avgMonthly={avgMonthly}
+                    upsell={upsell}
+                  />
 
-                  <div className={`text-sm font-semibold ${churnBadge.tone}`}>Churn: {churnBadge.text}</div>
-                </div>
-
-                <div className="mt-3 grid grid-cols-2 gap-2 xl:grid-cols-4">
-                  {[
-                    { label: "Segment Size", value: segmentSize, suffix: "Customers", Icon: SpectrumUserGroup },
-                    { label: "Avg. Tenure", value: avgTenure, suffix: "Months", Icon: SpectrumMonitoring },
-                    { label: "Avg. Monthly", value: avgMonthly, suffix: "USD", Icon: SpectrumCalculator },
-                    { label: "Upsell Score", value: upsell, suffix: "", Icon: SpectrumSubscribe },
-                  ].map((metric) => (
-                    <div key={metric.label} className="rounded-md border border-slate-200 bg-slate-50 px-3 py-3">
-                      <div className="flex items-center justify-between">
-                        <div className="text-[11px] font-medium uppercase tracking-wide text-slate-500">{metric.label}</div>
-                        <span className="icon-sm text-slate-400"><metric.Icon /></span>
-                      </div>
-                      <div className="mt-1.5 flex items-baseline gap-1">
-                        <span className="text-base font-bold text-slate-900">{metric.value}</span>
-                        {metric.suffix ? <span className="text-xs text-slate-500">{metric.suffix}</span> : null}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {descText && (
-                  <div className="mt-3">
-                    <div ref={descRef} className={`text-sm text-slate-600 ${isDescExpanded ? "" : "line-clamp-2"}`}>
-                      {descText}
-                    </div>
-                    {hasDescOverflow && (
-                      <button
-                        type="button"
-                        className="mt-2 text-xs font-semibold text-slate-500 hover:text-slate-700"
-                        onClick={() => setIsDescExpanded((prev) => !prev)}
-                      >
-                        {isDescExpanded ? "Read less" : "Read more"}
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Use cases table */}
-              <div className="rounded-md border border-slate-200 bg-white">
-                <div className="flex items-center justify-between px-4 py-3">
-                  <div className="text-sm font-semibold text-slate-500">Use cases</div>
-                  <div className="text-xs text-slate-500">{useCases.length} total</div>
-                </div>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full table-fixed border-t border-slate-200 text-sm">
-                    <thead className="bg-slate-50 text-slate-500">
-                      <tr>
-                        <th className="w-[5%] px-4 py-2 text-left font-semibold">
-                          <input
-                            ref={selectAllRef}
-                            type="checkbox"
-                            aria-label="Select all use cases"
-                            checked={allSelected}
-                            onChange={() => {
-                              if (allSelected) {
-                                setSelectedUseCaseIds(new Set());
-                                return;
-                              }
-                              setSelectedUseCaseIds(new Set(allUseCaseIds));
-                            }}
-                            className="h-4 w-4 cursor-pointer rounded-sm border border-slate-300 bg-white align-middle accent-[#0265dc]"
-                          />
-                        </th>
-                        <th className="w-[28%] px-4 py-2 text-left font-semibold">
-                          <button type="button" onClick={() => onSort("name")} className="inline-flex items-center gap-1 rounded text-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0265dc]">
-                            <SortArrow active={sortField === "name"} direction={sortDirection} />
-                            <span>Name</span>
-                          </button>
-                        </th>
-                        <th className="w-[16%] px-4 py-2 text-left font-semibold">
-                          <button type="button" onClick={() => onSort("type")} className="inline-flex items-center gap-1 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0265dc]">
-                            <SortArrow active={sortField === "type"} direction={sortDirection} />
-                            <span>Type</span>
-                          </button>
-                        </th>
-                        <th className="w-[14%] px-4 py-2 text-left font-semibold">
-                          <button type="button" onClick={() => onSort("channel")} className="inline-flex items-center gap-1 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0265dc]">
-                            <SortArrow active={sortField === "channel"} direction={sortDirection} />
-                            <span>Channel</span>
-                          </button>
-                        </th>
-                        <th className="w-[14%] px-4 py-2 text-left font-semibold">
-                          <button type="button" onClick={() => onSort("trigger")} className="inline-flex items-center gap-1 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0265dc]">
-                            <SortArrow active={sortField === "trigger"} direction={sortDirection} />
-                            <span>Trigger</span>
-                          </button>
-                        </th>
-                        <th className="w-[9%] px-4 py-2 text-left font-semibold">
-                          <button type="button" onClick={() => onSort("roi")} className="inline-flex items-center gap-1 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0265dc]">
-                            <SortArrow active={sortField === "roi"} direction={sortDirection} />
-                            <span>ROI</span>
-                          </button>
-                        </th>
-                        <th className="w-[14%] px-4 py-2 text-center font-semibold">
-                          <button type="button" onClick={() => onSort("confidence")} className="inline-flex items-center gap-1 rounded focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0265dc]">
-                            <SortArrow active={sortField === "confidence"} direction={sortDirection} />
-                            <span>Confidence</span>
-                          </button>
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {sortedUseCases.length === 0 && useCases.length > 0 && (
-                        <tr>
-                          <td className="px-4 py-8 text-center text-sm text-slate-500" colSpan={7}>
-                            No use cases match these filters.{" "}
-                            <button
-                              type="button"
-                              className="font-semibold text-[#0265dc] hover:underline"
-                              onClick={() => {
-                                setChannelFilter("All");
-                                setTypeFilter("All");
-                              }}
-                            >
-                              Clear filters
-                            </button>
-                          </td>
-                        </tr>
-                      )}
-                      {sortedUseCases.map((uc) => {
-                        const roi = uc.roi_result;
-                        const roiVal = roi?.estimated_roi;
-                        const conf = roi?.confidence_score ?? 0;
-                        const confVariant = confidenceBadgeVariant(conf);
-                        const isSelected = selectedUseCaseIds.has(uc.use_case_id);
-                        const selectedCellClass = isSelected ? "bg-blue-50 border-y border-blue-300" : "";
-                        const leftEdgeClass = isSelected ? "border-l border-blue-300" : "";
-                        const rightEdgeClass = isSelected ? "border-r border-blue-300" : "";
-                        const toggleRowSelection = () => {
-                          setSelectedUseCaseIds((prev) => {
-                            const next = new Set(prev);
-                            if (next.has(uc.use_case_id)) next.delete(uc.use_case_id);
-                            else next.add(uc.use_case_id);
-                            return next;
-                          });
-                        };
-
-                        return (
-                          <tr
-                            key={uc.use_case_id}
-                            className="cursor-pointer border-t border-slate-200 hover:bg-slate-50"
-                            onClick={toggleRowSelection}
-                          >
-                            <td className={`px-4 py-3 ${selectedCellClass} ${leftEdgeClass}`}>
-                              <input
-                                type="checkbox"
-                                aria-label={`Select ${uc.use_case_title}`}
-                                checked={isSelected}
-                                onClick={(e) => e.stopPropagation()}
-                                onChange={toggleRowSelection}
-                                className="h-4 w-4 cursor-pointer rounded-sm border border-slate-300 bg-white align-middle accent-[#0265dc]"
-                              />
-                            </td>
-                            <td className={`px-4 py-3 ${selectedCellClass}`}>
-                              <button
-                                className="block w-full overflow-hidden text-left font-semibold text-[#0265dc] hover:underline"
-                                title={formatDisplayValue(uc.use_case_title)}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setModalUseCase(uc);
-                                }}
-                              >
-                                <TruncateText text={formatDisplayValue(uc.use_case_title)} as="div" />
-                              </button>
-                              {uc.where_to_show?.surface && (
-                                <TruncateText text={formatDisplayValue(uc.where_to_show.surface)} as="div" className="mt-0.5 text-xs text-slate-500" />
-                              )}
-                            </td>
-                            <td className={`px-4 py-3 text-slate-700 ${selectedCellClass}`}>
-                              <TruncateText text={formatDisplayValue(uc.use_case_type)} as="div" />
-                            </td>
-                            <td className={`px-4 py-3 text-slate-700 ${selectedCellClass}`}>
-                              <TruncateText text={formatDisplayValue(uc.where_to_show?.channel)} as="div" />
-                            </td>
-                            <td className={`px-4 py-3 text-slate-700 ${selectedCellClass}`}>
-                              <TruncateText text={formatDisplayValue(uc.when_to_show?.trigger)} as="div" />
-                            </td>
-                            <td className={`px-4 py-3 ${selectedCellClass}`}>
-                              <div className="font-mono font-semibold text-slate-900">
-                                {roiVal != null ? `${roiVal.toFixed(2)}×` : "—"}
-                              </div>
-                            </td>
-                            <td className={`px-4 py-3 text-center ${selectedCellClass} ${rightEdgeClass}`}>
-                              {roi ? (
-                                <Badge variant={confVariant}>{confidenceLabel(conf)}</Badge>
-                              ) : (
-                                <span className="text-slate-500">—</span>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-
-                      {useCases.length === 0 && (
-                        <tr>
-                          <td className="px-4 py-6 text-slate-500" colSpan={7}>
-                            No use cases found for this segment.
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+                  {/* Use cases table */}
+                  <UseCasesTable
+                    useCases={useCases}
+                    sortedUseCases={sortedUseCases}
+                    sortField={sortField}
+                    sortDirection={sortDirection}
+                    onSort={onSort}
+                    selectedUseCaseIds={selectedUseCaseIds}
+                    setSelectedUseCaseIds={setSelectedUseCaseIds}
+                    allUseCaseIds={allUseCaseIds}
+                    allSelected={allSelected}
+                    selectAllRef={selectAllRef}
+                    setModalUseCase={setModalUseCase}
+                    setChannelFilter={setChannelFilter}
+                    setTypeFilter={setTypeFilter}
+                  />
                 </>
               )}
             </section>
@@ -1339,120 +476,17 @@ export default function PlaybooksDashboard() {
       )}
 
       {/* ROI Dialog */}
-      <DialogContainer onDismiss={() => setModalUseCase(null)}>
-        {modalUseCase && (
-          <Dialog size="L">
-            <Heading>{formatDisplayValue(modalUseCase.use_case_title ?? "Use case")}</Heading>
-            <Header>Use Case Details</Header>
-            <Divider />
-            <Content>
-              {!modalUseCase.roi_result ? (
-                <div className="text-sm text-slate-600">No ROI result available for this use case.</div>
-              ) : (
-                <>
-                  <RoiModule roi={modalUseCase.roi_result} />
-
-                  <div className="mt-7 border-t border-slate-200 pt-6">
-                    <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-                      <div className="rounded-md border border-slate-200 p-4">
-                        <div className="text-sm font-semibold text-slate-900">What</div>
-                        {modalUseCase.what_to_show?.message ? (
-                          <div className="mt-2 text-sm text-slate-600" title={modalUseCase.what_to_show.message}>
-                            <div className="line-clamp-3">{modalUseCase.what_to_show.message}</div>
-                          </div>
-                        ) : (
-                          <div className="mt-2 text-sm text-slate-600">—</div>
-                        )}
-                        {modalUseCase.what_to_show?.explanation && (
-                          <div className="mt-3 border-t border-slate-100 pt-3 text-xs text-slate-500" title={modalUseCase.what_to_show.explanation}>
-                            <div className="line-clamp-3">{modalUseCase.what_to_show.explanation}</div>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="rounded-md border border-slate-200 p-4">
-                        <div className="text-sm font-semibold text-slate-900">Where / When</div>
-                        <div className="mt-2 space-y-1.5 text-sm text-slate-700">
-                          <div>
-                            <span className="text-slate-500">Channel:</span>{" "}
-                            <span title={formatDisplayValue(modalUseCase.where_to_show?.channel)}>
-                              {formatDisplayValue(modalUseCase.where_to_show?.channel)}
-                            </span>
-                          </div>
-                          <div>
-                            <span className="text-slate-500">Surface:</span>{" "}
-                            <span title={formatDisplayValue(modalUseCase.where_to_show?.surface)}>
-                              {formatDisplayValue(modalUseCase.where_to_show?.surface)}
-                            </span>
-                          </div>
-                          <div className="mt-2">
-                            <span className="text-slate-500">Trigger:</span>{" "}
-                            <span title={formatDisplayValue(modalUseCase.when_to_show?.trigger)}>
-                              {formatDisplayValue(modalUseCase.when_to_show?.trigger)}
-                            </span>
-                          </div>
-                          <div>
-                            <span className="text-slate-500">Frequency:</span>{" "}
-                            <span title={formatDisplayValue(modalUseCase.when_to_show?.frequency)}>
-                              {formatDisplayValue(modalUseCase.when_to_show?.frequency)}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="rounded-md border border-slate-200 p-4 lg:col-span-2">
-                        <div className="text-sm font-semibold text-slate-900">Hypothesis / Targeting</div>
-                        <div className="mt-2 text-sm text-slate-600" title={modalUseCase.hypothesis ?? "—"}>
-                          <div className={isHypExpanded ? "" : "line-clamp-2"}>{modalUseCase.hypothesis ?? "—"}</div>
-                        </div>
-                        {(modalUseCase.hypothesis?.length ?? 0) > 180 && (
-                          <button
-                            type="button"
-                            className="mt-2 text-xs font-semibold text-slate-500 hover:text-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500"
-                            onClick={() => setIsHypExpanded((prev) => !prev)}
-                          >
-                            {isHypExpanded ? "Show less" : "Read more"}
-                          </button>
-                        )}
-                        {modalUseCase.target_criteria && (
-                          <div
-                            className="mt-3 rounded-lg border border-slate-200 bg-slate-50 p-3 font-mono text-xs text-slate-700"
-                            title={modalUseCase.target_criteria}
-                          >
-                            <div className={`whitespace-pre-wrap break-words ${isCriteriaExpanded ? "" : "line-clamp-2"}`}>
-                              {modalUseCase.target_criteria}
-                            </div>
-                            {modalUseCase.target_criteria.length > 180 && (
-                              <button
-                                type="button"
-                                className="mt-2 text-xs font-semibold text-slate-500 hover:text-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500"
-                                onClick={() => setIsCriteriaExpanded((prev) => !prev)}
-                              >
-                                {isCriteriaExpanded ? "Show less" : "Read more"}
-                              </button>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-            </Content>
-            <Footer>
-              <Button variant="secondary" onPress={() => setModalUseCase(null)}>Cancel</Button>
-            </Footer>
-            <ButtonGroup>
-              <Button variant="secondary" onPress={() => {}}>View Full Details</Button>
-              <Button variant="accent" onPress={() => {
-                setToastMessage(`"${formatDisplayValue(modalUseCase.use_case_title)}" activated.`);
-                toastTimerRef.current = setTimeout(() => setToastMessage(null), 4000);
-                setModalUseCase(null);
-              }}>Activate</Button>
-            </ButtonGroup>
-          </Dialog>
-        )}
-      </DialogContainer>
+      <UseCaseModal
+        modalUseCase={modalUseCase}
+        setModalUseCase={setModalUseCase}
+        isHypExpanded={isHypExpanded}
+        setIsHypExpanded={setIsHypExpanded}
+        isCriteriaExpanded={isCriteriaExpanded}
+        setIsCriteriaExpanded={setIsCriteriaExpanded}
+        toastTimerRef={toastTimerRef}
+        setToastMessage={setToastMessage}
+        formatDisplayValue={formatDisplayValue}
+      />
     </div>
   );
 }
