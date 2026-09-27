@@ -893,8 +893,10 @@ export default function PlaybooksDashboard() {
       <div className="flex min-h-0 flex-1">
         {/* Left navigation */}
         <aside
-          className={`hidden h-full overflow-y-auto overscroll-contain border-r border-slate-200 bg-white transition-all duration-200 md:block ${
-            isSidebarCollapsed ? "w-14" : "w-72"
+          onMouseEnter={(e) => e.currentTarget.classList.add("sidebar-scroll-active")}
+          onMouseLeave={(e) => e.currentTarget.classList.remove("sidebar-scroll-active")}
+          className={`sidebar-scroll hidden h-full overflow-y-auto overscroll-contain border-r border-slate-200 bg-white transition-all duration-200 md:block ${
+            isSidebarCollapsed ? "w-14" : "w-60"
           }`}
         >
           <nav className={`space-y-5 py-3 ${isSidebarCollapsed ? "px-1.5" : "px-3"}`}>
@@ -1261,11 +1263,6 @@ export default function PlaybooksDashboard() {
                                 title={formatDisplayValue(uc.use_case_title)}
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setSelectedUseCaseIds((prev) => {
-                                    const next = new Set(prev);
-                                    next.add(uc.use_case_id);
-                                    return next;
-                                  });
                                   setModalUseCase(uc);
                                 }}
                               >
@@ -1344,7 +1341,7 @@ export default function PlaybooksDashboard() {
       {/* ROI Dialog */}
       <DialogContainer onDismiss={() => setModalUseCase(null)}>
         {modalUseCase && (
-          <Dialog size="L">
+          <Dialog size="L" isDismissable>
             <Heading>{formatDisplayValue(modalUseCase.use_case_title ?? "Use case")}</Heading>
             <Header>Use Case Details</Header>
             <Divider />
